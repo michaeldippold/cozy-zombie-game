@@ -72,7 +72,8 @@ function isBehindWalls(node, e) {
 // "plain" once the world is loaded; wallVariantAt is supplied by the caller.
 // A soft warm glow over an intact window at night. Per docs/00-vision.md,
 // this is the same light the sim uses to pull zombies toward the player's
-// own node; the player sees the cause, not the number.
+// own node; the player sees the cause, not the number. Purely decorative —
+// the actual visibility effect is the light-punch in drawNightOverlay below.
 function drawWindowGlow(ctx, cx, cy) {
   const n = clock.nightFactor();
   if (n <= 0.02) return;
@@ -84,7 +85,13 @@ function drawWindowGlow(ctx, cx, cy) {
   ctx.fillRect(cx - 20, gy - 20, 40, 40);
 }
 
-function drawWalls(ctx, node, wallVariantAt) {
+// Radii (screen px) of the light-punch a source carves into the night wash.
+const WINDOW_LIGHT_RADIUS = 70;
+const LAMP_LIGHT_RADIUS = 100;
+// Props with these sprite ids act as light sources after dark.
+const LIGHT_PROP_SPRITES = new Set(["lamp"]);
+
+function drawWalls(ctx, node, wallVariantAt, lightSources) {
   // West wall, far to near. Each segment may use its own sprite.
   let lastWest = null;
   for (let gy = node.height - 1; gy >= 0; gy--) {
@@ -94,7 +101,10 @@ function drawWalls(ctx, node, wallVariantAt) {
     const p = iso.toScreen(0, gy);
     const variant = wallVariantAt(node, 0, gy, "west");
     drawFrame(ctx, sheet, `west_${variant}_0`, Math.round(p.x), Math.round(p.y), false, sheet.anchorWest);
-    if (variant === "window") drawWindowGlow(ctx, Math.round(p.x), Math.round(p.y));
+    if (variant === "window") {
+      drawWindowGlow(ctx, Math.round(p.x), Math.round(p.y));
+      lightSources.push({ x: Math.round(p.x), y: Math.round(p.y) - 38, radius: WINDOW_LIGHT_RADIUS });
+    }
     if (gy === node.height - 1) lastWest = sheet;
   }
   if (lastWest) {
@@ -109,7 +119,10 @@ function drawWalls(ctx, node, wallVariantAt) {
     const p = iso.toScreen(gx, 0);
     const variant = wallVariantAt(node, gx, 0, "north");
     drawFrame(ctx, sheet, `north_${variant}_0`, Math.round(p.x), Math.round(p.y), false, sheet.anchor);
-    if (variant === "window") drawWindowGlow(ctx, Math.round(p.x), Math.round(p.y));
+    if (variant === "window") {
+      drawWindowGlow(ctx, Math.round(p.x), Math.round(p.y));
+      lightSources.push({ x: Math.round(p.x), y: Math.round(p.y) - 38, radius: WINDOW_LIGHT_RADIUS });
+    }
     if (gx === node.width - 1) lastNorth = sheet;
   }
   if (lastNorth) {
@@ -118,12 +131,56 @@ function drawWalls(ctx, node, wallVariantAt) {
   }
 }
 
-// Full-canvas night wash, drawn last so it darkens everything uniformly.
-function drawNightOverlay(ctx) {
+// Lamp posts and anything else tagged as a light source, in screen space.
+function collectPropLights(node, out) {
+  for (const prop of node.props) {
+    if (!LIGHT_PROP_SPRITES.has(prop.sprite)) continue;
+    const [tx, ty] = prop.tile;
+    const p = iso.toScreen(tx, ty);
+    out.push({ x: Math.round(p.x), y: Math.round(p.y) - 14, radius: LAMP_LIGHT_RADIUS });
+  }
+}
+
+// Night darkening with light-punch. Interiors are assumed lit (the player's
+// own lamps and candles) and never darken; only outdoor nodes get the wash,
+// see docs/09-decisions.md. A single offscreen layer is filled with the dark
+// wash, then `destination-out` erases soft circles at each light source
+// before it's composited onto the scene — a cheap Canvas2D trick, no
+// per-pixel lighting math, that makes staying near a lamp or a lit window
+// meaningfully brighter than the open dark.
+let nightCanvas = null;
+let nightCtx = null;
+
+function drawNightOverlay(ctx, node, lightSources) {
+  if (!node.outdoor) return;
   const n = clock.nightFactor();
   if (n <= 0.01) return;
-  ctx.fillStyle = `rgba(18, 16, 46, ${0.5 * n})`;
-  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  const w = ctx.canvas.width;
+  const h = ctx.canvas.height;
+  if (!nightCanvas) {
+    nightCanvas = document.createElement("canvas");
+    nightCtx = nightCanvas.getContext("2d");
+  }
+  if (nightCanvas.width !== w || nightCanvas.height !== h) {
+    nightCanvas.width = w;
+    nightCanvas.height = h;
+  }
+  nightCtx.globalCompositeOperation = "source-over";
+  nightCtx.fillStyle = `rgba(18, 16, 46, ${0.5 * n})`;
+  nightCtx.fillRect(0, 0, w, h);
+
+  nightCtx.globalCompositeOperation = "destination-out";
+  for (const src of lightSources) {
+    const grad = nightCtx.createRadialGradient(src.x, src.y, 0, src.x, src.y, src.radius);
+    grad.addColorStop(0, "rgba(255,255,255,0.95)");
+    grad.addColorStop(0.6, "rgba(255,255,255,0.6)");
+    grad.addColorStop(1, "rgba(255,255,255,0)");
+    nightCtx.fillStyle = grad;
+    nightCtx.fillRect(src.x - src.radius, src.y - src.radius, src.radius * 2, src.radius * 2);
+  }
+  nightCtx.globalCompositeOperation = "source-over";
+
+  ctx.drawImage(nightCanvas, 0, 0);
 }
 
 // Props at least this tall (frame height in px) can occlude characters.
@@ -284,7 +341,9 @@ export function renderNode(ctx, node, entities, { wallVariantAt = plainVariant, 
       d.drawn = true;
     }
   }
-  drawWalls(ctx, node, wallVariantAt);
+  const lightSources = [];
+  drawWalls(ctx, node, wallVariantAt, lightSources);
+  collectPropLights(node, lightSources);
   for (const d of drawables) {
     if (d.drawn) continue;
     if (d.occluder) {
@@ -296,6 +355,6 @@ export function renderNode(ctx, node, entities, { wallVariantAt = plainVariant, 
     }
   }
   for (const d of drawables) if (d.occluded) drawSilhouette(ctx, d);
-  drawNightOverlay(ctx);
+  drawNightOverlay(ctx, node, lightSources);
   if (debug) debug(ctx, drawables);
 }

@@ -6,6 +6,13 @@ Rulings follow the tiebreaker in `00-vision.md`: what best serves a cozy Habbo-s
 
 ## Decisions
 
+### 2026-09-15 — Night fixes and the light-punch
+
+- **The day/night clock was wrong: it went dark at 3pm.** The phase boundaries were fractions of the cycle (0.45/0.55/0.90) chosen without checking what real hour they landed on — they worked out to roughly 10:48am, 1:12pm, and 9:36pm. Rewrote `clock.js` to define phases directly in real clock hours. Full dark now holds for exactly `23:00–06:00`, Zomboid-style, with a one-hour taper on each side so it isn't an instant cut. New games start at `08:00` instead of midnight, since waking up mid-morning is a better first moment than starting in the dark.
+- **Interiors never darken; only outdoor nodes do.** Michael asked whether "lights matter" could be more than a flat overlay without a real lighting engine. The answer that didn't need new art: assume the player's own building is lit (lamps, candles), so night is entirely an outdoor problem. That alone makes "go inside" a real mechanical reprieve, not just cosmetic.
+- **Darkness is drawn with a light-punch, not a flat wash.** The night layer is filled dark, then `destination-out` erases soft circles at each light source (lamp posts, lit windows) before compositing once onto the scene. This is a standard, cheap Canvas2D technique — gradient fills and one `drawImage`, no per-pixel lighting, no WebGL — and it reuses the exact radial-gradient code already written for the decorative window glow. The result: standing near a lamp or a lit window is visibly and meaningfully safer than the open dark, which is the actual gameplay payoff of "lights matter" without any new art or a lighting engine.
+- **A window's light-punch registers on whichever side is currently rendered.** Since the edge is shared, this needed no new state — the existing per-side wall-variant check that already draws the glow just also pushes a light-source entry.
+
 ### 2026-09-14 — Milestone 13, hunger and night
 
 - **Hunger and the day/night clock are the reason to leave the house.** Nothing before this forced the player outside; boarding up and waiting worked forever. A 10-minute hunger drain with finite, single-roll food (per the existing loot rule) makes exploring a requirement, not an option.
@@ -116,10 +123,12 @@ Values as of the end of milestone 11 (2026-09-14). Tuned only lightly; hands-on 
 | Inventory weight limit | 15 | `inventory.js` |
 | Occluder alpha / silhouette alpha / occluder min frame height | 0.4 / 0.55 / 64 px | `render.js` |
 | Day length | 720 s (12 min) real time per full cycle | `clock.js` |
-| Day / dusk / night / dawn boundaries | 0–45% / 45–55% / 55–90% / 90–100% of a cycle | `clock.js` |
+| Day / dusk / night / dawn boundaries | day 07:00–22:00, dusk 22:00–23:00, night 23:00–06:00, dawn 06:00–07:00 (was fractions of the cycle that didn't map to sane hours) | `clock.js` |
+| New game start time | 08:00 (was 00:00) | `clock.js` |
 | Brightness: day / night | 1.0 / 0.22 (never full black) | `clock.js` |
-| Night overlay max darkening | 50% at full night | `render.js` |
-| Window glow radius / peak alpha | 20 px / 0.55 × nightFactor | `render.js` |
+| Night wash max darkening | 50% at full night, outdoor nodes only | `render.js` |
+| Light-punch radius: window / lamp | 70 px / 100 px | `render.js` |
+| Window glow radius / peak alpha (decorative only) | 20 px / 0.55 × nightFactor | `render.js` |
 | Hunger max / drain | 100, full drain over 600 s (10 min) of continuous play | `entities/player.js` |
 | Starvation damage | 3 hp/s while hunger is 0 | `entities/player.js` |
 | Food hunger restore: beans / chips | 45 / 18 | `items.json` |
