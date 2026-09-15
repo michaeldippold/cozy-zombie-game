@@ -1,0 +1,8 @@
+[
+  { "id": "bat",       "name": "Baseball bat", "kind": "weapon", "weight": 2,    "melee": true,  "damage": 34, "range": 1.2, "arc": 60, "knockback": 0.6, "cooldown": 0.5 },
+  { "id": "pistol",    "name": "Pistol",       "kind": "weapon", "weight": 1.5,  "melee": false, "damage": 60, "ammo": "ammo_9mm", "loudness": 12, "cooldown": 0.35, "maxRange": 20 },
+  { "id": "ammo_9mm",  "name": "9mm rounds",   "kind": "ammo",   "weight": 0.05, "stack": 30 },
+  { "id": "can_beans", "name": "Can of beans", "kind": "food",   "weight": 0.5,  "heal": 30, "hunger": 45 },
+  { "id": "chips",     "name": "Bag of chips", "kind": "food",   "weight": 0.2,  "heal": 5,  "hunger": 18 },
+  { "id": "plank",     "name": "Plank",        "kind": "material", "weight": 1.5, "barricadeHp": 60 }
+]

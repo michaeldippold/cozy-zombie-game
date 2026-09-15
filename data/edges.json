@@ -1,0 +1,72 @@
+[
+  {
+    "id": "house-door",
+    "kind": "door",
+    "a": { "node": "house", "tile": [7, 9], "wall": "south" },
+    "b": { "node": "yard",  "tile": [8, 0], "wall": "north" },
+    "inside": "a",
+    "glass": null,
+    "barricade": null
+  },
+  {
+    "id": "house-window-1",
+    "kind": "window",
+    "a": { "node": "house", "tile": [2, 0], "wall": "north" },
+    "b": { "node": "yard",  "tile": [3, 0], "wall": "north" },
+    "inside": "a",
+    "glass": "intact",
+    "barricade": null
+  },
+  {
+    "id": "house-window-2",
+    "kind": "window",
+    "a": { "node": "house", "tile": [9, 0], "wall": "north" },
+    "b": { "node": "yard",  "tile": [10, 0], "wall": "north" },
+    "inside": "a",
+    "glass": "intact",
+    "barricade": null
+  },
+  {
+    "id": "yard-gate",
+    "kind": "gate",
+    "a": { "node": "yard",   "tile": [4, 9], "wall": "south" },
+    "b": { "node": "street", "tile": [3, 0], "wall": "north" },
+    "inside": "a"
+  },
+  {
+    "id": "shop-door",
+    "kind": "door",
+    "a": { "node": "shop",   "tile": [5, 7], "wall": "south" },
+    "b": { "node": "street", "tile": [9, 0], "wall": "north" },
+    "inside": "a"
+  },
+  {
+    "id": "house2-door",
+    "kind": "door",
+    "a": { "node": "house2-ground", "tile": [9, 3], "wall": "east" },
+    "b": { "node": "street",        "tile": [0, 3], "wall": "west" },
+    "inside": "a"
+  },
+  {
+    "id": "house2-window",
+    "kind": "window",
+    "a": { "node": "house2-ground", "tile": [7, 0], "wall": "north" },
+    "b": { "node": "street",        "tile": [0, 1], "wall": "west" },
+    "inside": "a",
+    "glass": "intact"
+  },
+  {
+    "id": "house2-stairs",
+    "kind": "stairs",
+    "a": { "node": "house2-ground",   "tile": [4, 0], "wall": "north" },
+    "b": { "node": "house2-upstairs", "tile": [4, 7], "wall": "south" },
+    "inside": "a"
+  },
+  {
+    "id": "park-gate",
+    "kind": "gate",
+    "a": { "node": "street", "tile": [6, 11], "wall": "south" },
+    "b": { "node": "park",   "tile": [6, 0],  "wall": "north" },
+    "inside": "a"
+  }
+]

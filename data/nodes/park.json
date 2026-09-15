@@ -1,0 +1,38 @@
+{
+  "id": "park",
+  "name": "Park",
+  "size": [12, 12],
+  "outdoor": true,
+  "zombieCap": 8,
+  "floor": "floor_grass",
+  "floorRects": [
+    { "rect": [6, 0, 1, 12], "sprite": "floor_path" },
+    { "rect": [0, 6, 12, 1], "sprite": "floor_path" }
+  ],
+  "walls": {
+    "north": "wall_fence",
+    "west": "wall_hedge"
+  },
+  "props": [
+    { "id": "tree-1", "sprite": "tree",  "tile": [2, 2],   "footprint": [1, 1], "solid": true, "blocksShots": true },
+    { "id": "tree-2", "sprite": "tree",  "tile": [9, 3],   "footprint": [1, 1], "solid": true, "blocksShots": true },
+    { "id": "tree-3", "sprite": "tree",  "tile": [3, 9],   "footprint": [1, 1], "solid": true, "blocksShots": true },
+    { "id": "tree-4", "sprite": "tree",  "tile": [10, 9],  "footprint": [1, 1], "solid": true, "blocksShots": true },
+    { "id": "tree-5", "sprite": "tree",  "tile": [8, 8],   "footprint": [1, 1], "solid": true, "blocksShots": true },
+    { "id": "tree-6", "sprite": "tree",  "tile": [1, 5],   "footprint": [1, 1], "solid": true, "blocksShots": true },
+    { "id": "bench-1","sprite": "bench", "tile": [4, 5],   "footprint": [2, 1], "solid": true, "blocksShots": false },
+    { "id": "bench-2","sprite": "bench", "tile": [7, 7],   "footprint": [2, 1], "solid": true, "blocksShots": false },
+    { "id": "lamp-1", "sprite": "lamp",  "tile": [5, 7],   "footprint": [1, 1], "solid": true, "blocksShots": false },
+    { "id": "bush-1", "sprite": "plant", "tile": [11, 11], "footprint": [1, 1], "solid": true, "blocksShots": false }
+  ],
+  "edges": [
+    { "edge": "park-gate", "side": "b" }
+  ],
+  "spawns": {
+    "player": [6, 1],
+    "zombies": [[2, 8], [10, 5], [5, 10], [11, 2], [8, 11], [1, 9]]
+  },
+  "items": [
+    { "item": "can_beans", "tile": [9, 6] }
+  ]
+}

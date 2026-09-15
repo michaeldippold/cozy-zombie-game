@@ -1,0 +1,5 @@
+{
+  "start": "house",
+  "nodes": ["house", "yard", "street", "house2-ground", "house2-upstairs", "shop", "park"],
+  "edges": "data/edges.json"
+}

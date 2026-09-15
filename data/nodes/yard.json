@@ -1,0 +1,41 @@
+{
+  "id": "yard",
+  "name": "Yard",
+  "size": [12, 10],
+  "floor": "floor_grass",
+  "floorOverrides": [
+    { "tile": [8, 1], "sprite": "floor_path" },
+    { "tile": [8, 2], "sprite": "floor_path" },
+    { "tile": [8, 3], "sprite": "floor_path" },
+    { "tile": [8, 4], "sprite": "floor_path" }
+  ],
+  "walls": {
+    "north": "wall_house",
+    "west": "wall_hedge"
+  },
+  "props": [
+    { "id": "tree-1", "sprite": "tree", "tile": [4, 6], "footprint": [1, 1], "solid": true, "blocksShots": true },
+    { "id": "tree-2", "sprite": "tree", "tile": [7, 5], "footprint": [1, 1], "solid": true, "blocksShots": true },
+    { "id": "tree-3", "sprite": "tree", "tile": [10, 7], "footprint": [1, 1], "solid": true, "blocksShots": true },
+    { "id": "tree-4", "sprite": "tree", "tile": [2, 3], "footprint": [1, 1], "solid": true, "blocksShots": true },
+    { "id": "lamp-1", "sprite": "lamp", "tile": [6, 8], "footprint": [1, 1], "solid": true, "blocksShots": false },
+    { "id": "bush-1", "sprite": "plant", "tile": [11, 4], "footprint": [1, 1], "solid": true, "blocksShots": false },
+    { "id": "bush-2", "sprite": "plant", "tile": [1, 9], "footprint": [1, 1], "solid": true, "blocksShots": false }
+  ],
+  "outdoor": true,
+  "zombieCap": 5,
+  "edges": [
+    { "edge": "house-door", "side": "b" },
+    { "edge": "house-window-1", "side": "b" },
+    { "edge": "house-window-2", "side": "b" },
+    { "edge": "yard-gate", "side": "a" }
+  ],
+  "spawns": {
+    "player": [8, 1],
+    "zombies": [[2, 8], [10, 5], [5, 9], [11, 1]]
+  },
+  "items": [
+    { "item": "ammo_9mm", "tile": [3, 6], "count": 8 },
+    { "item": "can_beans", "tile": [9, 9] }
+  ]
+}

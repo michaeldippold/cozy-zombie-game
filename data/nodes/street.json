@@ -1,0 +1,50 @@
+{
+  "id": "street",
+  "name": "Street",
+  "size": [12, 12],
+  "outdoor": true,
+  "zombieCap": 7,
+  "floor": "floor_grass",
+  "floorRects": [
+    { "rect": [0, 4, 12, 1], "sprite": "floor_path" },
+    { "rect": [0, 5, 12, 3], "sprite": "floor_road" },
+    { "rect": [0, 8, 12, 1], "sprite": "floor_path" },
+    { "rect": [3, 0, 1, 4], "sprite": "floor_path" },
+    { "rect": [9, 0, 1, 4], "sprite": "floor_path" },
+    { "rect": [6, 9, 1, 3], "sprite": "floor_path" },
+    { "rect": [0, 3, 3, 1], "sprite": "floor_path" }
+  ],
+  "walls": {
+    "north": ["wall_fence", "wall_fence", "wall_fence", "wall_fence", "wall_fence", "wall_fence", "wall_shop", "wall_shop", "wall_shop", "wall_shop", "wall_shop", "wall_shop"],
+    "west": ["wall_house2", "wall_house2", "wall_house2", "wall_house2", "wall_house2", "wall_house2", "wall_fence", "wall_fence", "wall_fence", "wall_fence", "wall_fence", "wall_fence"]
+  },
+  "wallDecor": [
+    { "tile": [7, 0], "wall": "north", "variant": "window" },
+    { "tile": [11, 0], "wall": "north", "variant": "window" },
+    { "tile": [0, 5], "wall": "west", "variant": "window" }
+  ],
+  "props": [
+    { "id": "car-1",  "sprite": "car",     "tile": [4, 6],  "footprint": [2, 1], "solid": true, "blocksShots": true },
+    { "id": "car-2",  "sprite": "car",     "tile": [8, 5],  "footprint": [2, 1], "solid": true, "blocksShots": true },
+    { "id": "lamp-1", "sprite": "lamp",    "tile": [2, 4],  "footprint": [1, 1], "solid": true, "blocksShots": false },
+    { "id": "lamp-2", "sprite": "lamp",    "tile": [9, 8],  "footprint": [1, 1], "solid": true, "blocksShots": false },
+    { "id": "mailbox","sprite": "mailbox", "tile": [1, 2],  "footprint": [1, 1], "solid": true, "blocksShots": false },
+    { "id": "tree-1", "sprite": "tree",    "tile": [10, 10],"footprint": [1, 1], "solid": true, "blocksShots": true },
+    { "id": "tree-2", "sprite": "tree",    "tile": [1, 10], "footprint": [1, 1], "solid": true, "blocksShots": true },
+    { "id": "bench-1","sprite": "bench",   "tile": [3, 9],  "footprint": [2, 1], "solid": true, "blocksShots": false }
+  ],
+  "edges": [
+    { "edge": "yard-gate", "side": "b" },
+    { "edge": "shop-door", "side": "b" },
+    { "edge": "house2-door", "side": "b" },
+    { "edge": "house2-window", "side": "b" },
+    { "edge": "park-gate", "side": "a" }
+  ],
+  "spawns": {
+    "player": [6, 6],
+    "zombies": [[5, 9], [10, 3], [2, 7], [7, 10], [11, 8]]
+  },
+  "items": [
+    { "item": "ammo_9mm", "tile": [7, 3], "count": 6 }
+  ]
+}

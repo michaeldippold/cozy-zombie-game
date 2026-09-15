@@ -1,0 +1,10 @@
+{
+  "image": "assets/sprites/chair.png",
+  "anchor": [32, 40],
+  "frames": {
+    "idle_0": [0, 0, 64, 56]
+  },
+  "animations": {
+    "idle": { "fps": 0, "loop": false, "frames": 1 }
+  }
+}

@@ -1,0 +1,36 @@
+# Cozy Zombie Game
+
+A Habbo-style isometric cozy diorama game that gets invaded by zombies. Plain HTML, CSS, and JavaScript with ES modules. Canvas 2D for the world, DOM for UI. No build step, no engine, no framework.
+
+## Start here every session
+
+1. Read `TODO.md`. The **Status** block says where work stopped. Continue from there.
+2. Read the doc linked from the current milestone before writing code.
+3. When a design question comes up, the tiebreaker is `docs/00-vision.md`. Log any new ruling in `docs/09-decisions.md`.
+4. Before ending a session, update the Status block in `TODO.md` and tick completed boxes.
+
+## Docs
+
+`docs/00` vision · `01` constraints and fixed numbers · `02` world model (nodes, edges, sim) · `03` rendering · `04` gameplay · `05` architecture and module ownership · `06` JSON data formats · `07` demo scope · `08` milestones with acceptance criteria · `09` decisions and tunables.
+
+## Rules that are easy to forget
+
+- Tiles are 64×32. Internal canvas is 960×540, integer-scaled. Nodes are at most 12×12.
+- Multi-tile furniture is per-tile drawables, never one wide sprite.
+- An edge is one object shared by both nodes. Never copy edge state.
+- Windows: zombies in, never out, ground floor only, glass breaks first. Player never uses windows.
+- Aim and melee arcs are in screen space. Hitscan converts to grid once.
+- Placeholder art is generated at boot through the same interface as real sprite sheets. Do not wait for art.
+- Never draw UI into the canvas. Never scale in `drawImage`.
+
+## Running
+
+```
+python serve.py 8000
+```
+
+Then open http://localhost:8000. ES modules will not load from `file://`. `serve.py` disables caching; plain `http.server` serves stale modules after edits.
+
+## Testing from a browser console
+
+`window.__game` exposes the live state. Call `window.__game.loop.setPaused(true)` first, then `window.__game.loop.advance(seconds)` to step time deterministically; otherwise the game runs in real time between commands. `?sheet=<sprite id>&scale=2` on the URL renders a sprite sheet instead of the game.
