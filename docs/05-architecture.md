@@ -55,6 +55,7 @@ The tree above is the original plan. Built since:
 | `src/interact.js` | Every world action: what is under the cursor, the E shortcut, timed actions, auto-walk approach tiles |
 | `src/ui/context-menu.js` | The right-click menu |
 | `src/clock.js` | Day/night clock: hour, phase, brightness, night factor |
+| `src/moodles.js`, `src/ui/moodles.js` | Moodle registry (pure logic) and its HUD row |
 | `src/save.js` | One versioned `localStorage` slot: write, read, clear. Knows nothing about the game |
 | `src/light.js` | The single light function, the cached static light map, the flashlight beam, room daylight |
 | `src/sfx.js` | Synthesized placeholder sounds |

@@ -4,12 +4,12 @@ Working checklist. A new session should read `CLAUDE.md`, then this file, then t
 
 ## Status
 
-- **Current milestone:** 17 complete (2026-09-17): save, load, start screen, pause menu. Scope and results in `docs/15-save-load.md`.
+- **Current milestone:** 18 complete (2026-09-17): moodles, with hunger converted from a bar (`docs/17-moodles.md`). Before it, 17: save, load, start screen, pause menu (`docs/15-save-load.md`).
 - **What exists:** seven-node neighbourhood with gates and stairs (M12); hunger and a day/night clock (M13); flashlight and light-aware zombie sight (M14); per-node light map with shadows (M15); room lights, candles, coherent windows, daylight through openings (M16); one-slot local autosave, start screen, Escape pause menu, death deletes the save (M17). Right-click menus with auto-walk, screen-space gun, doorway thresholds, stamina-costed melee, plank refunds.
 - **Last completed task (2026-09-17):** Milestone 17 built and verified by script. Also wrote `docs/16-zomboid-systems-fit.md`, a survey of Project Zomboid systems with a fit verdict for each; it is the menu for choosing the next survival systems and nothing in it is built.
 - **History:** each milestone doc (10 to 13) ends with its scripted acceptance results; `docs/09-decisions.md` has every ruling with its reason, newest first, including the ones that were reversed.
 - **Blocked on:** nothing
-- **Candidate next steps (not started, need Michael's call):** pick from the "build next" list in `docs/16-zomboid-systems-fit.md`. Parked: flashlight battery, candle burn time, daylight pooled at windows, peeking through windows. Later: Tiled importer, real art last.
+- **Candidate next steps (not started, need Michael's call):** Michael has said hunger, thirst, and tired are the minimum moodle set, so thirst and sleep are the likely next systems; each is one entry in `src/moodles.js` plus its mechanic. Open question waiting on Michael: should death keep the world and only lose the character (end of `docs/16`)? Otherwise pick from the "build next" list in `docs/16-zomboid-systems-fit.md`. Parked: flashlight battery, candle burn time, daylight pooled at windows, peeking through windows. Later: Tiled importer, real art last.
 - **Notes for next session:** Run with `python serve.py 8000` (a no-cache static server; plain `http.server` serves stale modules). For scripted tests in a browser console: the game now boots to a start screen, so call `window.__game.newGame()` first, then `window.__game.loop.setPaused(true)`, then drive time with `window.__game.loop.advance(seconds)`; the game otherwise runs in real time between commands. `?sheet=<id>&scale=2` on the URL renders a sprite sheet instead of the game. Interaction (E), prompt, pickups, container search, and plank boarding were built during milestone 8 in `src/interact.js` and `src/ui/prompt.js`; milestone 9 only needs the panel, container view, use/drop/equip, and food.
 
 Milestone acceptance criteria live in [docs/08-milestones.md](docs/08-milestones.md). Fixed numbers live in [docs/01-constraints.md](docs/01-constraints.md). Tunable starting values live in [docs/09-decisions.md](docs/09-decisions.md).
@@ -113,6 +113,13 @@ Milestone acceptance criteria live in [docs/08-milestones.md](docs/08-milestones
 - [x] Occluders draw at alpha 0.4.
 - [x] Silhouette pass via an offscreen canvas with `source-in`.
 - [x] Verify acceptance in the yard behind trees with player and a zombie together.
+
+## Milestone 18 — Moodles (see docs/17-moodles.md)
+
+- [x] `src/moodles.js`: registry of `{ id, glyph, stages, stageOf(player) }` and `activeMoodles(player)`. Hunger is the first entry.
+- [x] `src/ui/moodles.js`: HUD row above health; hidden when fine; amber to red by stage; pops when it appears or worsens; hover shows name and flavour text.
+- [x] `ui/hud.js` and `style.css`: hunger bar removed. Health and stamina stay as bars.
+- [x] Verify acceptance in docs/17 (scripted and passed 2026-09-17).
 
 ## Milestone 17 — Save, load, start screen (see docs/15-save-load.md)
 

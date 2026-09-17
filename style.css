@@ -91,19 +91,67 @@ html, body {
   transition: width 0.1s;
 }
 
-.hud-hunger {
-  width: 160px;
-  height: 6px;
-  background: #2a2a30;
-  border: 2px solid #55555f;
-  border-radius: 3px;
+/* Moodles: docs/17-moodles.md */
+.hud-moodles {
+  display: flex;
+  gap: 6px;
+  min-height: 0;
 }
 
-.hud-hunger-fill {
-  height: 100%;
-  width: 100%;
-  background: #c8934a;
-  transition: width 0.3s;
+.moodle {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(0, 0, 0, 0.45);
+  border-radius: 6px;
+  color: #2a1c10;
+  margin-bottom: 4px;
+}
+
+.moodle.stage-1 { background: #e0c070; }
+.moodle.stage-2 { background: #e0a050; }
+.moodle.stage-3 { background: #dc7440; }
+.moodle.stage-4 { background: #d04444; color: #fff0e8; }
+
+.moodle.pop {
+  animation: moodle-pop 0.45s ease-out;
+}
+
+@keyframes moodle-pop {
+  0% { transform: scale(0.6); }
+  45% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
+.moodle-tip {
+  display: none;
+  position: absolute;
+  left: 36px;
+  bottom: 0;
+  white-space: nowrap;
+  background: rgba(20, 16, 24, 0.92);
+  border: 1px solid #6a5a70;
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 12px;
+  color: #eee;
+  text-shadow: none;
+}
+
+.moodle-tip b {
+  display: block;
+}
+
+.moodle-tip span {
+  color: #b0a8b8;
+  font-size: 11px;
+}
+
+.moodle:hover .moodle-tip {
+  display: block;
 }
 
 .hud-weapon {

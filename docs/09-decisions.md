@@ -6,6 +6,14 @@ Rulings follow the tiebreaker in `00-vision.md`: what best serves a cozy Habbo-s
 
 ## Decisions
 
+### 2026-09-17 — Moodles for slow needs (Michael's ruling)
+
+- **Slow needs are moodles, not bars.** Michael: they are a perfect pictorial way to show status, and hiding the exact number adds a hint of immersion, the same reason Zomboid hides it. This overrides my line in `16` that every need gets a visible bar, and it replaces the hunger bar from milestone 13.
+- **The set stays minimal.** Hunger, thirst, and tired at least. No food sickness, no temperature, no per-limb health, no clothing simulation.
+- **Bars stay where you react within a second:** health, stamina, zombie HP. If you plan around it, it is a moodle.
+- **Moodles leave the door open for an infection hint**, if infection is ever wanted. Nothing is decided.
+- The debug corner still prints exact values. That is a testing aid, not part of the game.
+
 ### 2026-09-17 — Milestone 17, save and load
 
 - **One local slot, autosave only, death deletes it.** Zomboid rules. A manual save you can reload after a bad night would turn the zombies into a puzzle to retry rather than a threat to live with, which undercuts the vision's "chaos and horror". Local only for now; real saves wait until the game has earned them.

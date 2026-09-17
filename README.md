@@ -56,5 +56,6 @@ Read them in order the first time. After that, `docs/00-vision.md` is the tiebre
 | [09-decisions.md](docs/09-decisions.md) | Decision log with rationale, plus open questions. |
 | [15-save-load.md](docs/15-save-load.md) | What is saved, when, and the start and pause screens. |
 | [16-zomboid-systems-fit.md](docs/16-zomboid-systems-fit.md) | Project Zomboid's systems, and which of them belong in this game. |
+| [17-moodles.md](docs/17-moodles.md) | Status icons for slow needs: what is a bar, what is a moodle, and the stages. |
 
 The original brainstorm this was derived from is `iso-zombie-demo-spec.md` at the repo root. It is superseded by `docs/` and kept for reference only.

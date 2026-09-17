@@ -11,7 +11,7 @@ From `00-vision.md`: a cozy Habbo-style diorama that gets invaded. Four question
 1. **Does it make the home matter more?** The home is the thing the zombies threaten. Systems that give you reasons to build it up, stay in it, or defend it are the best fit.
 2. **Does it work in small rooms seen from a fixed angle?** Nodes are at most 12×12 and you always see the whole room. Systems built on large maps, vision cones, or long travel do not transfer.
 3. **Is it one rule or one meter?** Zomboid's depth comes from dozens of interlocking simulations. Ours should come from a few simple rules that collide. If a system needs a body map or a spreadsheet, it is out or cut down to one number.
-4. **Can you see it?** Zomboid hides its numbers on purpose. This game shows them (HP bars, stamina, hunger). Anything we take gets a visible state.
+4. **Can you see it?** Every state we take is visible on screen. *(Amended the same day by Michael's ruling: fast states are bars, slow needs are Zomboid-style moodles with the exact number hidden. See `17-moodles.md`.)*
 
 Already ruled out by Michael: calories and macros, drivable cars, skill books and XP multipliers. Parked: flashlight battery, candle burn time.
 
@@ -96,7 +96,7 @@ Then replace Zomboid's entire mood loop (boredom, stress, unhappiness, and the p
 |---|---|
 | **Temperature, clothing insulation, seasons, a weather simulation** | The heaviest system in Zomboid and the least visible. Rain as a yes/no state is all we need, for ambience and for filling pots. |
 | **The body-part injury model, fractures, burns, lodged glass, infection of wounds** | Fails the one-meter test outright. |
-| **The Knox infection** | The hidden, always-fatal bite is the heart of Zomboid's dread, and it works there because a run is dozens of hours of accumulated skills. Here it would mean a coin flip quietly deleting the house you decorated. HP already makes zombies lethal. If it ever comes in, it should be visible and treatable. |
+| **The Knox infection** | The hidden, always-fatal bite is the heart of Zomboid's dread, and it works there because a run is dozens of hours of accumulated skills. Here it would mean a coin flip quietly deleting the house you decorated. HP already makes zombies lethal. If it ever comes in, it should be treatable. Michael notes that moodles give a natural way to hint at it (a queasy icon that might be the bite), so this is a "not now", not a "never". |
 | **Panic, stress, boredom, unhappiness, pain, drunkenness, pills** | Replaced wholesale by room Comfort (above). Panic could survive as presentation only: a heartbeat and a vignette when several zombies are close, with no stat penalty. |
 | **Skills and XP** | Michael has left the door open, so not a hard no. But every Zomboid system leans on skill gates, and most of our "friendlier" versions above work by deleting them. I would hold off until something clearly needs them. |
 | **Vision cone and hidden interiors** | The diorama view, where you see the whole room, is the identity of the game. Darkness already does the hiding. |
@@ -116,7 +116,7 @@ Then replace Zomboid's entire mood loop (boredom, stress, unhappiness, and the p
 - **One object, many jobs.** A sheet is a curtain and a bandage. A campfire cooks and lights. A dresser is storage, decor, and a barricade. It keeps the item list short and the interactions rich.
 - **Forecast through the radio.** Events are fairer and scarier when the player could have known.
 
-Where we deliberately differ: **Zomboid hides its numbers and we show ours.** Bars for the needs, small icons for on/off states like bleeding. No moodle guessing games.
+~~Where we deliberately differ: Zomboid hides its numbers and we show ours.~~ Reversed by Michael the same day: slow needs are moodles (`17-moodles.md`), kept to a minimal set. Where "a thirst bar" or "one more bar" appears above, read "a moodle".
 
 ## One open question: what death does to the house
 

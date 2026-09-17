@@ -90,7 +90,7 @@ Zombies have hp. The bat does moderate damage with knockback. The pistol does hi
 
 ## HUD
 
-DOM, absolutely positioned over the canvas: health bar, stamina bar, hunger bar, equipped weapon name, ammo count, the current node name, and the clock label ("Day 3, 22:15").
+DOM, absolutely positioned over the canvas: a row of moodles (status icons for slow needs such as hunger, see `17-moodles.md`), health bar, stamina bar, equipped weapon name, ammo count, the current node name, and the clock label ("Day 3, 22:15").
 
 ## Day and night
 
