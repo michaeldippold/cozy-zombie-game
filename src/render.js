@@ -93,9 +93,10 @@ const LAMP_LIGHT_RADIUS = 140;
 // Night is dark but never black: things in the open are faintly visible, and
 // light sources make them meaningfully brighter. The layer is composited with
 // "multiply" so colours darken proportionally; at full night a far, unlit tile
-// keeps roughly 35-60% of its brightness per channel, blue-shifted.
-const NIGHT_TINT = "70, 80, 140";
-const NIGHT_TINT_ALPHA = 0.9;
+// keeps roughly 19-40% of its brightness per channel, blue-shifted: dark
+// enough that a still zombie and a small tree are hard to tell apart.
+const NIGHT_TINT = "38, 44, 95";
+const NIGHT_TINT_ALPHA = 0.95;
 // The player's own night vision: a wide, weak, very gradual lift around them.
 // Low centre strength and a long falloff so it never reads as a spotlight that
 // follows you around. Visual only; zombie sight does not use it.
@@ -313,6 +314,8 @@ function computeOcclusion(drawables) {
   for (let i = 0; i < drawables.length; i++) {
     const d = drawables[i];
     if (d.kind !== "entity" || d.entity.dead || !d.rect) continue;
+    // A zombie nobody can make out does not fade the tree it stands behind.
+    if (d.revealable === false) continue;
     // Only the upper body counts; feet overlapping a prop base is normal.
     const body = { x: d.rect.x, y: d.rect.y, w: d.rect.w, h: Math.max(1, d.rect.h - 14) };
     for (let j = i + 1; j < drawables.length; j++) {
@@ -382,7 +385,17 @@ function drawHealthBar(ctx, x, y, frac) {
   ctx.fillRect(x0, y, Math.round(HP_BAR_W * f), HP_BAR_H);
 }
 
-function entityDrawables(entities, out) {
+// A health bar over a dim shape gives the dark away, so bars only show on
+// zombies that are lit or close enough to make out.
+const BAR_LIGHT_MIN = 0.45;
+const BAR_NEAR_TILES = 3;
+
+function entityDrawables(entities, out, node, player) {
+  const barVisible = (e) => {
+    if (!node || !player) return true;
+    if (Math.hypot(e.gx - player.gx, e.gy - player.gy) <= BAR_NEAR_TILES) return true;
+    return light.lightAt(node, e.gx, e.gy, player) >= BAR_LIGHT_MIN;
+  };
   for (const e of entities) {
     const sheet = getSheet(e.sprite);
     const p = iso.toScreen(e.gx, e.gy);
@@ -398,9 +411,12 @@ function entityDrawables(entities, out) {
       sheet,
       rect,
       occluded: false,
+      // Zombies in the dark get no x-ray silhouette either; it would make a
+      // hidden zombie easier to spot than one standing in the open.
+      revealable: e.kind !== "zombie" || barVisible(e),
       draw(ctx) {
         drawCharacter(ctx, sheet, e.anim, e.facing, x, y);
-        if (e.kind === "zombie" && !e.dead && e.state !== "die") drawHealthBar(ctx, x, y - 56, e.hp / e.maxHp);
+        if (e.kind === "zombie" && !e.dead && e.state !== "die" && barVisible(e)) drawHealthBar(ctx, x, y - 56, e.hp / e.maxHp);
       },
     });
   }
@@ -413,7 +429,7 @@ export function renderNode(ctx, node, entities, { wallVariantAt = plainVariant, 
   const drawables = [];
   propDrawables(node, drawables);
   itemDrawables(node, drawables);
-  entityDrawables(entities, drawables);
+  entityDrawables(entities, drawables, node, player);
   drawables.sort((a, b) => a.key - b.key);
   computeOcclusion(drawables);
   // Anyone in a doorway draws under the wall so the jambs frame them.
@@ -436,7 +452,7 @@ export function renderNode(ctx, node, entities, { wallVariantAt = plainVariant, 
       d.draw(ctx);
     }
   }
-  for (const d of drawables) if (d.occluded) drawSilhouette(ctx, d);
+  for (const d of drawables) if (d.occluded && d.revealable !== false) drawSilhouette(ctx, d);
   drawNightOverlay(ctx, node, lightSources, player);
   if (debug) debug(ctx, drawables);
 }
