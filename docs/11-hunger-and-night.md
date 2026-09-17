@@ -32,6 +32,8 @@ Two changes, both reusing the hop-distance and alarm machinery from `docs/10-nei
 
 ## Rendering: darkness with a light-punch (`render.js`)
 
+> **Superseded.** This section describes the first two night renderers. Interiors now darken, the decorative window glow is gone, and light comes from a shadowed map. The current design is in `14-lighting-reference.md`. Kept as history.
+
 Night is not a flat wash. **Interiors are assumed lit** — the player's own lamps and candles — and never darken regardless of the clock; only nodes flagged `outdoor: true` get night treatment at all. This is what makes going inside a real reprieve rather than a cosmetic one.
 
 For an outdoor node, `drawNightOverlay` builds the darkness on a cached offscreen canvas the size of the viewport:
@@ -52,6 +54,8 @@ Separately, any `window` variant still gets a small additive warm radial glow dr
 Numbers as shipped, see `docs/09-decisions.md` for the values and reasoning. The day length, hunger drain rate, and night pull multiplier are the ones most likely to need hands-on adjustment — they were chosen to be provably present in a short test, not tuned for feel.
 
 ## Acceptance
+
+The lighting lines below describe the milestone as first shipped; see `14-lighting-reference.md` for current behaviour.
 
 - Hunger drains to zero over ten minutes with no food, and starving drains health until game over with the correct overlay text.
 - Eating restores both hunger and health per the item's fields, and reports "not hungry" only when both are full.

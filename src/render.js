@@ -74,10 +74,8 @@ function isBehindWalls(node, e) {
 
 // Wall segment variant for a tile position. Edges (doors, windows) override
 // "plain" once the world is loaded; wallVariantAt is supplied by the caller.
-// Floor lighting comes from the light map (light.js). These screen-space pools
-// remain only for what the floor map cannot cover: the wall face around a lit
-// window, and the anchor point for the warm glow of a lamp.
-const WINDOW_LIGHT_RADIUS = 60;
+// Floor lighting comes from the light map (light.js). This radius only sizes
+// the warm glow drawn at outdoor lamps on top of the night layer.
 const LAMP_LIGHT_RADIUS = 140;
 // Night is dark but never black: things in the open are faintly visible, and
 // light sources make them meaningfully brighter. The layer is composited with
@@ -148,13 +146,11 @@ function collectPropLights(node, out) {
   }
 }
 
-// Night darkening with light-punch. Interiors are assumed lit (the player's
-// own lamps and candles) and never darken; only outdoor nodes get the wash,
-// see docs/09-decisions.md. A single offscreen layer is filled with the dark
-// wash, then `destination-out` erases soft circles at each light source
-// before it's composited onto the scene — a cheap Canvas2D trick, no
-// per-pixel lighting math, that makes staying near a lamp or a lit window
-// meaningfully brighter than the open dark.
+// The night layer. One offscreen canvas is filled with the night tint, has light
+// erased out of it (player night vision, the static light map, the flashlight
+// beam), and is composited over the scene with "multiply". Used outdoors at
+// night and in any interior whose lights are off and whose openings do not admit
+// full daylight. See docs/14-lighting-reference.md.
 let nightCanvas = null;
 let nightCtx = null;
 
@@ -197,12 +193,8 @@ function drawNightOverlay(ctx, node, lightSources, player) {
     const org = iso.getOrigin();
     // Clip to the floor diamond so the padded border of the map never lights
     // the void outside the node.
-    const c0 = iso.toScreen(-0.5, -0.5);
-    const c1 = iso.toScreen(node.width - 0.5, -0.5);
-    const c2 = iso.toScreen(node.width - 0.5, node.height - 0.5);
-    const c3 = iso.toScreen(-0.5, node.height - 0.5);
     nightCtx.save();
-    poly(nightCtx, [[c0.x, c0.y], [c1.x, c1.y], [c2.x, c2.y + SLAB], [c3.x, c3.y + SLAB]]);
+    floorPath(nightCtx, node);
     nightCtx.clip();
     nightCtx.globalCompositeOperation = "destination-out";
     nightCtx.imageSmoothingEnabled = true;
@@ -215,17 +207,6 @@ function drawNightOverlay(ctx, node, lightSources, player) {
     nightCtx.restore();
   }
 
-  // Screen-space pools for wall faces around lit windows only.
-  nightCtx.globalCompositeOperation = "destination-out";
-  for (const src of lightSources) {
-    if (src.warm) continue; // lamps light the floor through the map
-    const grad = nightCtx.createRadialGradient(src.x, src.y, 0, src.x, src.y, src.radius);
-    grad.addColorStop(0, "rgba(255,255,255,0.9)");
-    grad.addColorStop(0.45, "rgba(255,255,255,0.5)");
-    grad.addColorStop(1, "rgba(255,255,255,0)");
-    nightCtx.fillStyle = grad;
-    nightCtx.fillRect(src.x - src.radius, src.y - src.radius, src.radius * 2, src.radius * 2);
-  }
   // Flashlight beam: a polygon built from blocked rays, erased with a
   // gradient from the chest (bright) to the range (nothing). Because the rays
   // stop at blocking tiles, the beam ends at trees, cars, and walls for free.

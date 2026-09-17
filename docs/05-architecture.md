@@ -46,6 +46,23 @@ Keep modules small and dumb. Each file has one job. Data flows down from `world`
   tiles/*.png
 ```
 
+## Modules added since this layout was written
+
+The tree above is the original plan. Built since:
+
+| Module | Job |
+|---|---|
+| `src/interact.js` | Every world action: what is under the cursor, the E shortcut, timed actions, auto-walk approach tiles |
+| `src/ui/context-menu.js` | The right-click menu |
+| `src/clock.js` | Day/night clock: hour, phase, brightness, night factor |
+| `src/light.js` | The single light function, the cached static light map, the flashlight beam, room daylight |
+| `src/sfx.js` | Synthesized placeholder sounds |
+| `src/placeholders.js`, `src/render-util.js` | Generated placeholder sheets and drawing helpers |
+| `data/world.json` | Node list, edges file, start node |
+| `serve.py` | No-cache dev server, plus a dev-only screenshot endpoint |
+
+Ownership additions: **time** is owned by `clock.js` and read directly by anything that needs it; **light** is owned by `light.js` and nothing else computes it; **room light state** (`lightsOn`) lives on the node, like edge state lives on the edge.
+
 ## Game loop
 
 `loop.js` owns time.

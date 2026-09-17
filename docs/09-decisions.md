@@ -6,11 +6,15 @@ Rulings follow the tiebreaker in `00-vision.md`: what best serves a cozy Habbo-s
 
 ## Decisions
 
+### 2026-09-17 — Lighting called done for now
+
+- Michael confirmed indoor darkness with boarded windows, candles, and the flashlight indoors all behave as expected, and called the lighting arc finished for now. `14-lighting-reference.md` is the as-built source of truth; docs 11 to 13 are history and are marked where they were superseded. Next priority, per Michael: other survival systems, before limiters like a flashlight battery.
+
 ### 2026-09-17 — Milestone 16, indoor light and coherent windows
 
 - **Every opening sits on the same edge inside as the wall it occupies outside.** Michael found the starter house impossible: windows flanking the door outside, on the back wall inside. Boarding the "back" windows boarded the front. My fault: the momentum fix moved the door to the near edge and left the windows behind. The house is north of the yard, so its south wall is the facade; door and windows now share that edge in the same order. Same for the blue house (east edge) and the shop's decorative windows.
 - **Near edges get a low cutaway stub wall, interiors only.** Habbo draws nothing there; The Sims draws stubs. A stub gives near-edge doors (a gap), windows (a short frame), and the light switch somewhere to live, never hides anything, and frames the room as a dollhouse.
-- **Room lights are a boolean per interior.** On: the whole room is lit, its windows cast real light outside through the light map, and the sim pull follows. Off: the room follows the clock. The starter house starts on; everything else off.
+- **Room lights are a boolean per interior.** On: the whole room is lit, its windows cast real light outside through the light map, and the sim pull follows. Off: ~~the room follows the clock~~ the room gets only the daylight its openings admit (amended the same day, see the daylight ruling below). The starter house starts on; everything else off.
 - **A window glows only if the room behind it is lit.** The rounded fake glow is gone, at Michael's request. A lit window is a lit pane plus real light on the ground. Decorative windows have no room and never glow.
 - **Candles light the room and never the windows.** A placed candle is a static source in the interior light map, shadows included. Window emission is driven only by the room-light boolean, so candlelight is the stealthy option.
 - **The switch is always beside the entrance, with an LED.** Michael's worry: Zomboid's switches are already hard to find. Convention plus an always-visible LED (orange off, green on) drawn over the darkness. It is a simple action so E reaches it.
@@ -51,7 +55,7 @@ Rulings follow the tiebreaker in `00-vision.md`: what best serves a cozy Habbo-s
 ### 2026-09-15 — Night fixes and the light-punch
 
 - **The day/night clock was wrong: it went dark at 3pm.** The phase boundaries were fractions of the cycle (0.45/0.55/0.90) chosen without checking what real hour they landed on — they worked out to roughly 10:48am, 1:12pm, and 9:36pm. Rewrote `clock.js` to define phases directly in real clock hours. Full dark now holds for exactly `23:00–06:00`, Zomboid-style, with a one-hour taper on each side so it isn't an instant cut. New games start at `08:00` instead of midnight, since waking up mid-morning is a better first moment than starting in the dark.
-- **Interiors never darken; only outdoor nodes do.** Michael asked whether "lights matter" could be more than a flat overlay without a real lighting engine. The answer that didn't need new art: assume the player's own building is lit (lamps, candles), so night is entirely an outdoor problem. That alone makes "go inside" a real mechanical reprieve, not just cosmetic.
+- ~~**Interiors never darken; only outdoor nodes do.**~~ *Reversed by milestone 16 (2026-09-17): interiors darken when their lights are off and their openings admit no daylight.* Original reasoning, kept for the record: Michael asked whether "lights matter" could be more than a flat overlay without a real lighting engine. The answer that didn't need new art: assume the player's own building is lit (lamps, candles), so night is entirely an outdoor problem. That alone makes "go inside" a real mechanical reprieve, not just cosmetic.
 - **Darkness is drawn with a light-punch, not a flat wash.** The night layer is filled dark, then `destination-out` erases soft circles at each light source (lamp posts, lit windows) before compositing once onto the scene. This is a standard, cheap Canvas2D technique — gradient fills and one `drawImage`, no per-pixel lighting, no WebGL — and it reuses the exact radial-gradient code already written for the decorative window glow. The result: standing near a lamp or a lit window is visibly and meaningfully safer than the open dark, which is the actual gameplay payoff of "lights matter" without any new art or a lighting engine.
 - **A window's light-punch registers on whichever side is currently rendered.** Since the edge is shared, this needed no new state — the existing per-side wall-variant check that already draws the glow just also pushes a light-source entry.
 

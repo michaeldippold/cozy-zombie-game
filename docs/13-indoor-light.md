@@ -25,7 +25,7 @@ This composes with the momentum rule rather than fighting it: the door pair alre
 
 - Each interior has `lightsOn` (boolean). The starter house starts on; everywhere else starts off.
 - **On**: the whole room is fully lit, no shadows, regardless of the clock. Its intact or broken windows become real light sources in the outdoor node they face: light on the ground through the light map, and the sim's night pull toward that window (both already read the map, so this is free).
-- **Off**: the room follows the clock. By day it is bright (daylight); at night it is as dark as outdoors, and the night layer, the player's night-vision pool, the flashlight, and zombie sight all work indoors exactly as they do outside.
+- **Off**: the room gets only the daylight its openings admit (see "Daylight comes through the openings" below), down to night-dark. The night layer, the player's night-vision pool, the flashlight, and zombie sight all work indoors exactly as they do outside.
 - A window glows only if the room behind it is lit. The rounded fake glow is gone. A lit window is a lit pane (drawn over the darkness) plus real light from the map.
 - Decorative windows have no room behind them and never glow.
 
@@ -57,10 +57,10 @@ Flipping it is a **simple action**: `E` when it is the nearest simple thing, and
 
 ## Light model changes (`light.js`)
 
-- Ambient: outdoors, the clock. Indoors, 1 if `lightsOn`, else the clock.
+- Ambient: outdoors, the clock. Indoors, 1 if `lightsOn`, else daylight scaled by the room's `openness`, floored at the clock's night brightness.
 - Static sources: outdoors, lamp posts and windows whose interior is lit. Indoors, placed candles. (Indoor lamp props are furniture; the room light is the boolean.)
 - The cache signature includes which windows are lit and where candles stand, so flipping a switch, boarding a window, or moving a candle rebuilds the affected maps.
-- `darknessOf(node)` tells the renderer how much night to draw: the night factor outdoors, the same indoors only when the lights are off.
+- `darknessOf(node)` tells the renderer how much night to draw, derived from the ambient value for any node.
 
 ## Acceptance
 

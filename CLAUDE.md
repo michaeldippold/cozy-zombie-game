@@ -11,7 +11,7 @@ A Habbo-style isometric cozy diorama game that gets invaded by zombies. Plain HT
 
 ## Docs
 
-`docs/00` vision · `01` constraints and fixed numbers · `02` world model (nodes, edges, sim) · `03` rendering · `04` gameplay · `05` architecture and module ownership · `06` JSON data formats · `07` demo scope · `08` milestones with acceptance criteria · `09` decisions and tunables.
+`docs/00` vision · `01` constraints and fixed numbers · `02` world model (nodes, edges, sim) · `03` rendering · `04` gameplay · `05` architecture and module ownership · `06` JSON data formats · `07` demo scope · `08` milestones with acceptance criteria · `09` decisions and tunables · `10` neighbourhood · `11` hunger and day/night · `12` flashlight and light map · `13` indoor light and coherent windows · **`14` lighting reference (as built; wins over 11 to 13 where they disagree)**.
 
 ## Rules that are easy to forget
 
@@ -22,6 +22,9 @@ A Habbo-style isometric cozy diorama game that gets invaded by zombies. Plain HT
 - Aim and melee arcs are in screen space. Hitscan converts to grid once.
 - Placeholder art is generated at boot through the same interface as real sprite sheets. Do not wait for art.
 - Never draw UI into the canvas. Never scale in `drawImage`.
+- Light is one function: `light.lightAt(node, gx, gy, player)`. Nothing else computes light. The flashlight is never baked into the light map.
+- Door pairs sit on opposite screen sides (momentum). Every opening sits on the same edge inside as the wall it occupies outside (coherence). Interiors have low stub walls on the near edges; outdoor nodes do not.
+- A window glows only if the room behind it has its lights on. Candles never light windows.
 
 ## Running
 

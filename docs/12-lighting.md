@@ -6,11 +6,13 @@ Both milestones share one module, `src/light.js`, which answers a single questio
 
 ---
 
+> **Reading note.** The flashlight, zombie awareness, and light-map sections below are still accurate in substance. Three details were later changed by milestone 16 and are marked where they occur: interiors are no longer always lit, lamp and window radii changed, and the screen-space window pool was removed. The current design in one place: `14-lighting-reference.md`.
+
 ## Milestone 14 — Flashlight and light-aware zombies
 
 ### Light model (`src/light.js`, analytic)
 
-- **Ambient.** Interiors are 1.0 always (the player's own lamps). Outdoors, ambient is `clock.getBrightness()`: 1.0 by day, 0.22 at full night.
+- **Ambient.** ~~Interiors are 1.0 always (the player's own lamps).~~ *Superseded by milestone 16: an interior is 1.0 only with its lights on.* Outdoors, ambient is `clock.getBrightness()`: 1.0 by day, 0.22 at full night.
 - **Static sources.** Lamp props (sprite id in `LIGHT_PROP_SPRITES`) and intact windows (wall variant `window`). Each adds `1 - d / radius` for grid distance `d` inside its radius. Lamps reach 2.4 tiles, windows 1.8.
 - **Flashlight.** When on, the beam adds full light to any position inside its cone with line of sight, and the player carrying it gets a fixed self-light: holding a torch makes *you* a visible point in the dark. That is the trade the whole feature turns on.
 - `lightAt(node, gx, gy, player)` sums these and clamps to 1.
@@ -27,7 +29,7 @@ The cone is defined in screen space (it's what the hand aims) and marched in gri
 
 ### Rendering
 
-In `drawNightOverlay`, after the lamp and window pools, the beam polygon is erased from the night layer with a radial gradient from the chest (bright) to the range (nothing), then a warm additive fill goes over the scene with the same clip. Because the polygon is built from blocked rays, the beam stops at trees, cars, and walls without any extra shadow code. Indoors nothing draws, since interiors are lit.
+In `drawNightOverlay`, after the lamp and window pools, the beam polygon is erased from the night layer with a radial gradient from the chest (bright) to the range (nothing), then a warm additive fill goes over the scene with the same clip. Because the polygon is built from blocked rays, the beam stops at trees, cars, and walls without any extra shadow code. ~~Indoors nothing draws, since interiors are lit.~~ *Superseded: the beam draws in any dark room.*
 
 ### Zombie awareness
 
@@ -56,17 +58,17 @@ The analytic model can't cast shadows and can't be read cheaply by anything that
 
 ### Model (as built)
 
-- **Static light is a cached map per node**, at two cells per tile so shadows have soft edges. For every cell, each static source (lamp, intact window) adds `min(1, 1.4 × (1 − d / radius))` if the path from the source to the cell is clear of shot-blocking tiles. The source's own tile and the target's own tile never block, so a tree is lit on its lit side and dark behind. Lamps reach 4.5 tiles, windows 3.0: big soft pools with room for shadows to read. (5.5 and 3.5 were tried first; they lit nearly the whole street and undercut the darkness level chosen the same day.)
+- **Static light is a cached map per node**, at two cells per tile so shadows have soft edges. For every cell, each static source (lamp, intact window) adds `min(1, 1.4 × (1 − d / radius))` if the path from the source to the cell is clear of shot-blocking tiles. The source's own tile and the target's own tile never block, so a tree is lit on its lit side and dark behind. Lamps reach 4.5 tiles, windows 3.0 *(lamps later reduced to 3.0 at Michael's request)*: big soft pools with room for shadows to read. (5.5 and 3.5 were tried first; they lit nearly the whole street and undercut the darkness level chosen the same day.)
 - The cache is keyed by the node's light signature (which sources exist, where). Boarding or breaking a window changes the signature and the map rebuilds. `light.update(node)` validates it once per step.
 - **The flashlight is not in the map.** It is evaluated exactly at query time (`inBeam`), which is cheaper than re-marching a cone across the map every frame and keeps the drawn beam, the sight test, and the light value in perfect agreement.
 - `lightAt(node, gx, gy, player)` = clock ambient + a bilinear sample of the static map + the beam and self-light terms, clamped. Same signature as milestone 14; no caller changed.
-- Interiors have no map: light is 1.
+- ~~Interiors have no map: light is 1.~~ *Superseded by milestone 16: interiors have a map too (candles), and their ambient depends on the switch and the openings.*
 
 ### Rendering (as built)
 
 The static map is also the picture. It is written into a tiny image, one pixel per cell with alpha = how much darkness to remove, and drawn onto the night layer under `destination-out` through the isometric transform with image smoothing on. The browser's bilinear filtering does the interpolation, so light pools and shadow edges come out smooth with no per-pixel work and no blocky tiles.
 
-Three things stay in screen space on purpose: a small pool at each lit window so the wall face around it glows (the map only covers the floor), the warm glow at lamps, and the player's night-vision pool, which is vision, not light. The flashlight keeps its crisp ray-cast polygon.
+Two things stay in screen space on purpose: the warm glow at lamps, and the player's night-vision pool, which is vision, not light. *(A third, a small pool lighting the wall face around each lit window, was removed in milestone 16 along with the fake window glow; lit windows now show a lit pane.)* The flashlight keeps its crisp ray-cast polygon.
 
 ### What it unlocks
 

@@ -14,6 +14,10 @@ python serve.py 8000
 
 Then open http://localhost:8000. The script is a plain static server with caching disabled so edited modules reload; any other static server works too.
 
+## What is in it
+
+Seven connected dioramas (a house, its yard, a street, a shop, a two-storey house, a park) with zombies simulated everywhere and drawn only where you are. Melee and a pistol, stamina, hunger, a day/night clock, containers and a weight-limited backpack, boarding doors and windows, right-click menus for every action, and a lighting system where darkness, lamps, room lights, candles, and a flashlight all change what you can see and what can see you.
+
 ## Controls
 
 | Key | Action |

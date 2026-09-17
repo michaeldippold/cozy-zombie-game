@@ -53,5 +53,5 @@ A small exterior, about 12×10 tiles.
 - Audio, beyond placeholder sounds. The demo synthesizes short WebAudio blips in `src/sfx.js` for shots, swings, hits, glass, pickups, and boarding. No audio files.
 - Narrative of any kind.
 - Peeking through windows. Escaping through windows.
-- Day and night, lighting.
+- ~~Day and night, lighting.~~ Built after the demo: see `11` through `14`.
 - Real art. Placeholders are the plan for the whole demo.

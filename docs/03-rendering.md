@@ -97,6 +97,20 @@ The demo does not wait for character art. At boot, `assets.js` generates placeho
 
 Placeholder tiles and props are flat-colored diamonds and boxes generated the same way.
 
+## Draw passes as built
+
+The pass list above is the original four. With thresholds, stub walls, and lighting it is now, in order:
+
+1. Floor tiles and door threshold pads.
+2. Near-edge stub walls (interiors only): low, drawn under everything that follows.
+3. Characters standing in a far-wall doorway, so the jambs frame them.
+4. Far walls, with door, window, stairs, and boarded variants read from edge state.
+5. All sorted drawables, with occluders faded.
+6. X-ray silhouettes of occluded characters.
+7. The night layer (`14-lighting-reference.md`).
+8. Things that must show over the darkness: the flashlight's warm fill, lamp glows, lit window panes, candle flames, the switch LED.
+9. Combat effects (tracers, swing arcs), from `main.js`.
+
 ## Occlusion
 
 Tall props on the near side of a character will cover it. Rule: **fade the occluder and draw a silhouette. Both, not one.**
