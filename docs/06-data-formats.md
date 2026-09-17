@@ -1,3 +1,5 @@
+> Grid inventory (`21-grid-inventory.md`): items have `size: [w, h]`, `color`, `short`, and no `weight`; loot tables have `grid: [cols, rows]`; inventory and container entries are `{ id, count, x, y, rot }`.
+>
 > Additions since this was written: items may have `capacity` (a water container; its inventory, container, and floor entries carry `fill`, 0 to 100), `thirst`, and `verb`; props may have `"water": "sink"` to be a water source. See `20-thirst.md`.
 
 # 06 — Data formats

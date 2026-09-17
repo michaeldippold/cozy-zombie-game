@@ -1,12 +1,12 @@
 [
-  {"id": "bat", "name": "Baseball bat", "kind": "weapon", "weight": 2, "melee": true, "damage": 34, "range": 1.2, "arc": 60, "knockback": 0.6, "cooldown": 0.5},
-  {"id": "pistol", "name": "Pistol", "kind": "weapon", "weight": 1.5, "melee": false, "damage": 60, "ammo": "ammo_9mm", "loudness": 12, "cooldown": 0.35, "maxRange": 20},
-  {"id": "ammo_9mm", "name": "9mm rounds", "kind": "ammo", "weight": 0.05, "stack": 30},
-  {"id": "can_beans", "name": "Can of beans", "kind": "food", "weight": 0.5, "heal": 30, "hunger": 45},
-  {"id": "chips", "name": "Bag of chips", "kind": "food", "weight": 0.2, "heal": 5, "hunger": 18, "thirst": -8},
-  {"id": "flashlight", "name": "Flashlight", "kind": "tool", "weight": 0.6, "beam": {"range": 6, "arc": 44}},
-  {"id": "candle", "name": "Candle", "kind": "light", "weight": 0.2, "light": {"radius": 3.2}},
-  {"id": "plank", "name": "Plank", "kind": "material", "weight": 1.5, "barricadeHp": 60},
-  {"id": "water_bottle", "name": "Water bottle", "kind": "drink", "weight": 0.6, "capacity": 100},
-  {"id": "soda", "name": "Can of soda", "kind": "food", "verb": "Drink", "weight": 0.4, "heal": 0, "hunger": 5, "thirst": 35}
+  {"id": "bat", "name": "Baseball bat", "kind": "weapon", "melee": true, "damage": 34, "range": 1.2, "arc": 60, "knockback": 0.6, "cooldown": 0.5, "size": [1, 3], "color": "#b8864a", "short": "Bat"},
+  {"id": "pistol", "name": "Pistol", "kind": "weapon", "melee": false, "damage": 60, "ammo": "ammo_9mm", "loudness": 12, "cooldown": 0.35, "maxRange": 20, "size": [2, 1], "color": "#6a7078", "short": "Pistol"},
+  {"id": "ammo_9mm", "name": "9mm rounds", "kind": "ammo", "stack": 30, "size": [1, 1], "color": "#c8a83a", "short": "9mm"},
+  {"id": "can_beans", "name": "Can of beans", "kind": "food", "heal": 30, "hunger": 45, "size": [1, 1], "color": "#b85a3a", "short": "Beans"},
+  {"id": "chips", "name": "Bag of chips", "kind": "food", "heal": 5, "hunger": 18, "thirst": -8, "size": [1, 1], "color": "#e0b040", "short": "Chips"},
+  {"id": "flashlight", "name": "Flashlight", "kind": "tool", "beam": {"range": 6, "arc": 44}, "size": [1, 2], "color": "#4a4a52", "short": "Torch"},
+  {"id": "candle", "name": "Candle", "kind": "light", "light": {"radius": 3.2}, "size": [1, 1], "color": "#f0e8d0", "short": "Candle", "stack": 4},
+  {"id": "plank", "name": "Plank", "kind": "material", "barricadeHp": 60, "size": [1, 4], "color": "#9a7448", "short": "Plank"},
+  {"id": "water_bottle", "name": "Water bottle", "kind": "drink", "capacity": 100, "size": [1, 2], "color": "#d8e4ec", "short": "Water"},
+  {"id": "soda", "name": "Can of soda", "kind": "food", "verb": "Drink", "heal": 0, "hunger": 5, "thirst": 35, "size": [1, 1], "color": "#d04848", "short": "Soda"}
 ]

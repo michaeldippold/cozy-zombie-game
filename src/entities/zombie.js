@@ -8,6 +8,8 @@ import { createAnimation, playAnimation, advanceAnimation, isActiveFrame } from 
 import { emit } from "../events.js";
 import { lightAt, inBeam } from "../light.js";
 import * as clock from "../clock.js";
+import { containerGrid } from "../items.js";
+import { BAG_COLS, BAG_ROWS } from "../inventory.js";
 
 export const ZOMBIE_SPEED = 1.2; // tiles per second
 export const ZOMBIE_SIGHT = 6; // tiles, in full light
@@ -50,6 +52,12 @@ export function createZombie(gx, gy, { id = null, hp = ZOMBIE_HP, aggro = false,
     lootTable: "zombie",
     searched,
     contents: loot ? loot.map((i) => ({ ...i })) : [],
+    // A body is a grid bag. A former survivor's is the backpack they died with.
+    cols: former ? BAG_COLS : containerGrid("zombie")[0],
+    rows: former ? BAG_ROWS : containerGrid("zombie")[1],
+    get items() {
+      return this.contents;
+    },
     get tiles() {
       return [[Math.round(this.gx), Math.round(this.gy)]];
     },

@@ -11,7 +11,7 @@ A Habbo-style isometric cozy diorama game that gets invaded by zombies. Plain HT
 
 ## Docs
 
-`docs/00` vision · `01` constraints and fixed numbers · `02` world model (nodes, edges, sim) · `03` rendering · `04` gameplay · `05` architecture and module ownership · `06` JSON data formats · `07` demo scope · `08` milestones with acceptance criteria · `09` decisions and tunables · `10` neighbourhood · `11` hunger and day/night · `12` flashlight and light map · `13` indoor light and coherent windows · **`14` lighting reference (as built; wins over 11 to 13 where they disagree)** · `15` save and load · `16` Zomboid systems and whether they fit (a menu, not a plan) · `17` moodles · `18` death, turning, and the next survivor · `19` bodies as containers · `20` thirst, water, and body despawn.
+`docs/00` vision · `01` constraints and fixed numbers · `02` world model (nodes, edges, sim) · `03` rendering · `04` gameplay · `05` architecture and module ownership · `06` JSON data formats · `07` demo scope · `08` milestones with acceptance criteria · `09` decisions and tunables · `10` neighbourhood · `11` hunger and day/night · `12` flashlight and light map · `13` indoor light and coherent windows · **`14` lighting reference (as built; wins over 11 to 13 where they disagree)** · `15` save and load · `16` Zomboid systems and whether they fit (a menu, not a plan) · `17` moodles · `18` death, turning, and the next survivor · `19` bodies as containers · `20` thirst, water, and body despawn · `21` grid inventory.
 
 ## Rules that are easy to forget
 
@@ -25,7 +25,7 @@ A Habbo-style isometric cozy diorama game that gets invaded by zombies. Plain HT
 - Light is one function: `light.lightAt(node, gx, gy, player)`. Nothing else computes light. The flashlight is never baked into the light map.
 - Door pairs sit on opposite screen sides (momentum). Every opening sits on the same edge inside as the wall it occupies outside (coherence). Interiors have low stub walls on the near edges; outdoor nodes do not.
 - Fast states (health, stamina) are bars. Slow needs (hunger, later thirst and tired) are moodles with the number hidden: one entry in `src/moodles.js`. Keep the set minimal.
-- Non-stacking items can carry per-instance state (`fill`). Anything that moves one must move the whole entry, never rebuild it from `{ id, count }`.
+- Inventory is a grid and there is no weight. The player's bag, every container, and every body is a bag `{ cols, rows, items }`; all placement goes through `src/grid.js`. Entries carry position and per-instance state (`fill`): move the entry object, never rebuild it from `{ id, count }`. New items need `size` and `color`.
 - Any new persistent state needs a line in its module's `serialize()` and `restore()`, and a `SAVE_VERSION` bump in `src/save.js` if the shape changes.
 - A window glows only if the room behind it has its lights on. Candles never light windows.
 

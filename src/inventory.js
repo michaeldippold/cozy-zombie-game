@@ -1,47 +1,25 @@
-// Player inventory: a weight-limited list of { id, count }. Non-stacking items
-// may carry per-instance state such as `fill` (docs/20-thirst.md). See docs/04-gameplay.md.
+// Player inventory: a grid bag { cols, rows, items, equipped }. Placement rules
+// live in grid.js (docs/21-grid-inventory.md). Entries may carry per-instance
+// state such as `fill` (docs/20-thirst.md).
 
 import { getItem } from "./items.js";
+import * as grid from "./grid.js";
 
-export const INVENTORY_LIMIT = 15;
+export const BAG_COLS = 6;
+export const BAG_ROWS = 4;
 
-export function createInventory(limit = INVENTORY_LIMIT) {
-  return { items: [], limit, equipped: null };
-}
-
-export function totalWeight(inv) {
-  return inv.items.reduce((n, it) => n + getItem(it.id).weight * it.count, 0);
+export function createInventory(cols = BAG_COLS, rows = BAG_ROWS) {
+  return { cols, rows, items: [], equipped: null };
 }
 
 export function countItem(inv, id) {
   return inv.items.filter((it) => it.id === id).reduce((n, it) => n + it.count, 0);
 }
 
-// Add count of an item. Returns the number actually added (0 if over weight).
-// `props` (e.g. { fill }) are copied onto each new non-stacking entry.
+// Add count of an item, placed wherever it fits. Returns the number actually
+// added (0 if there is no room). `props` (e.g. { fill }) go on each new entry.
 export function addItem(inv, id, count = 1, props = {}) {
-  const def = getItem(id);
-  const room = inv.limit - totalWeight(inv);
-  const canAdd = Math.min(count, Math.floor(room / def.weight + 1e-9));
-  if (canAdd <= 0) return 0;
-  if (def.stack) {
-    let remaining = canAdd;
-    for (const it of inv.items) {
-      if (it.id !== id || it.count >= def.stack) continue;
-      const take = Math.min(remaining, def.stack - it.count);
-      it.count += take;
-      remaining -= take;
-      if (remaining <= 0) break;
-    }
-    while (remaining > 0) {
-      const take = Math.min(remaining, def.stack);
-      inv.items.push({ id, count: take });
-      remaining -= take;
-    }
-  } else {
-    for (let i = 0; i < canAdd; i++) inv.items.push({ id, count: 1, ...props });
-  }
-  return canAdd;
+  return grid.add(inv, id, count, props);
 }
 
 // Remove count of an item. Returns the number actually removed.
@@ -55,18 +33,20 @@ export function removeItem(inv, id, count = 1) {
     remaining -= take;
     if (it.count <= 0) inv.items.splice(i, 1);
   }
-  if (inv.equipped === id && countItem(inv, id) === 0) inv.equipped = null;
+  fixEquipped(inv);
   return count - remaining;
 }
 
-// Remove and return one whole entry, matching `fill` when given. For moving
-// items that carry per-instance state.
-export function takeEntry(inv, id, fill = null) {
-  const i = inv.items.findIndex((it) => it.id === id && (fill === null || it.fill === fill));
-  if (i < 0) return null;
-  const [entry] = inv.items.splice(i, 1);
-  if (inv.equipped === id && countItem(inv, id) === 0) inv.equipped = null;
-  return entry;
+// Remove one specific entry.
+export function removeEntry(inv, entry) {
+  const ok = grid.remove(inv, entry);
+  fixEquipped(inv);
+  return ok;
+}
+
+// The equipped weapon must still be in the bag.
+export function fixEquipped(inv) {
+  if (inv.equipped && countItem(inv, inv.equipped) === 0) inv.equipped = null;
 }
 
 // Entries that hold water: [{ id, count, fill }].

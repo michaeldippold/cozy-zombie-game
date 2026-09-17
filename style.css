@@ -256,72 +256,167 @@ html, body {
   pointer-events: none;
 }
 
-/* Inventory panel */
+/* Inventory panel: grid bags. docs/21-grid-inventory.md */
 #inventory {
   position: absolute;
   right: 12px;
   top: 12px;
-  display: flex;
-  gap: 8px;
   font-size: 12px;
 }
 
+.inv-body {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 8px;
+}
+
 .inv-column {
-  width: 220px;
   background: rgba(24, 20, 30, 0.92);
   border: 2px solid #6a5a70;
   border-radius: 6px;
-  padding: 6px 8px;
+  padding: 6px 8px 8px;
 }
 
 .inv-header {
   display: flex;
   justify-content: space-between;
-  font-weight: bold;
-  border-bottom: 1px solid #4a4050;
-  padding-bottom: 4px;
-  margin-bottom: 4px;
-}
-
-.inv-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 2px 6px;
   align-items: center;
-  padding: 3px 0;
-  border-bottom: 1px solid #2e2836;
+  font-weight: bold;
+  padding-bottom: 5px;
 }
 
-.inv-row .inv-buttons {
-  grid-column: 1 / -1;
+.inv-grid {
+  position: relative;
+  background-color: #1a161f;
+  background-image:
+    linear-gradient(to right, #3a3242 1px, transparent 1px),
+    linear-gradient(to bottom, #3a3242 1px, transparent 1px);
+  background-size: var(--cell) var(--cell);
+  border-right: 1px solid #3a3242;
+  border-bottom: 1px solid #3a3242;
+}
+
+.inv-item {
+  position: absolute;
+  box-sizing: border-box;
+  background: var(--item);
+  border: 1px solid rgba(0, 0, 0, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  border-radius: 3px;
+  overflow: hidden;
+  cursor: grab;
   display: flex;
-  gap: 4px;
+  align-items: center;
+  justify-content: center;
 }
 
-.inv-count {
-  color: #cfc48a;
+.inv-item:hover {
+  filter: brightness(1.15);
 }
 
-.inv-weight {
-  color: #9a9aa8;
-  font-size: 11px;
+.inv-item.equipped {
+  border: 2px solid #ffd76a;
 }
 
-.inv-empty {
-  color: #8a8a90;
-  padding: 6px 0;
+.inv-label {
+  position: relative;
+  font-size: 9px;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 1px 1px #000, 0 0 2px #000;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.inv-item.tall .inv-label {
+  writing-mode: vertical-rl;
+}
+
+.inv-stack {
+  position: absolute;
+  right: 2px;
+  bottom: 1px;
+  font-size: 9px;
+  color: #fff;
+  text-shadow: 0 1px 1px #000, 0 0 2px #000;
+  pointer-events: none;
+}
+
+/* The water in a bottle. */
+.inv-level {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  background: #3a8ee0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+}
+
+.inv-hl {
+  position: absolute;
+  box-sizing: border-box;
+  pointer-events: none;
+  border-radius: 3px;
+}
+
+.inv-hl.ok {
+  background: rgba(110, 220, 120, 0.35);
+  border: 1px solid #7ee08a;
+}
+
+.inv-hl.bad {
+  background: rgba(230, 90, 90, 0.35);
+  border: 1px solid #e87070;
+}
+
+#inventory.dragging .inv-item {
+  cursor: grabbing;
+}
+
+.inv-ghost {
+  position: fixed;
+  z-index: 50;
+  box-sizing: border-box;
+  pointer-events: none;
+  background: var(--item);
+  border: 1px solid rgba(0, 0, 0, 0.6);
+  border-radius: 4px;
+  opacity: 0.8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  text-shadow: 0 1px 1px #000;
+  font-family: "Segoe UI", system-ui, sans-serif;
 }
 
 .inv-hint {
-  color: #6a6a78;
-  font-size: 10px;
-  margin-top: 6px;
+  margin-left: auto;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(24, 20, 30, 0.8);
+  color: #a098ac;
+  font-size: 9px;
+}
+
+.inv-body::after {
+  /* forces the hint onto its own line under the panels */
+  content: "";
+  order: 1;
+  flex-basis: 100%;
+  height: 0;
+}
+
+.inv-hint {
+  order: 2;
 }
 
 #inventory button {
   font: inherit;
-  font-size: 11px;
-  padding: 1px 7px;
+  font-size: 10px;
+  padding: 0 6px;
   background: #4a4058;
   color: #eee;
   border: 1px solid #6a5a70;
@@ -331,12 +426,6 @@ html, body {
 
 #inventory button:hover {
   background: #5e5070;
-}
-
-#inventory button:disabled {
-  background: #2e2836;
-  color: #8a8a90;
-  cursor: default;
 }
 
 /* Overlay */

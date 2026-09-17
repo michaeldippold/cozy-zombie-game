@@ -12,6 +12,11 @@ export function loadLoot(tables) {
   lootTables = tables;
 }
 
+// Grid size [cols, rows] of a container, from its loot table (docs/21).
+export function containerGrid(tableId) {
+  return lootTables[tableId]?.grid || [4, 4];
+}
+
 export function getItem(id) {
   const def = items.get(id);
   if (!def) throw new Error(`Unknown item ${id}`);

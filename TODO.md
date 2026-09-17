@@ -4,12 +4,12 @@ Working checklist. A new session should read `CLAUDE.md`, then this file, then t
 
 ## Status
 
-- **Current milestone:** 22 complete (2026-09-17): thirst, water bottles with a fill level, sinks and a fountain (`docs/20-thirst.md`). Also 21: bodies despawn after 48 in-game hours. Earlier the same day: 20 bodies as containers, 19 death and survivors, 18 moodles, 17 save and load.
+- **Current milestone:** 23 complete (2026-09-17): grid inventory for the player, containers, and bodies, with drag and drop, rotation, and right-click item menus (`docs/21-grid-inventory.md`). Weight is gone. Earlier the same day: 22 thirst, 21 body despawn, 20 bodies as containers, 19 death and survivors, 18 moodles, 17 save and load.
 - **What exists:** seven-node neighbourhood with gates and stairs (M12); hunger and a day/night clock (M13); flashlight and light-aware zombie sight (M14); per-node light map with shadows (M15); room lights, candles, coherent windows, daylight through openings (M16); one-slot local autosave, start screen, Escape pause menu, death deletes the save (M17). Right-click menus with auto-walk, screen-space gun, doorway thresholds, stamina-costed melee, plank refunds.
 - **Last completed task (2026-09-17):** Milestone 17 built and verified by script. Also wrote `docs/16-zomboid-systems-fit.md`, a survey of Project Zomboid systems with a fit verdict for each; it is the menu for choosing the next survival systems and nothing in it is built.
 - **History:** each milestone doc (10 to 13) ends with its scripted acceptance results; `docs/09-decisions.md` has every ruling with its reason, newest first, including the ones that were reversed.
 - **Blocked on:** nothing
-- **Next, in Michael's order:** sleep (tired moodle, beds, time skip, waking to break-ins; see section 4 of `docs/16`), then furniture pickup, move, and rotate. **Tabled by Michael:** water and power shutoff, until the moment-to-moment game is fuller. Parked: flashlight battery, candle burn time, daylight pooled at windows, peeking through windows. Later: Tiled importer, real art last.
+- **Next, in Michael's order:** sleep (tired moodle, beds, time skip, waking to break-ins; see section 4 of `docs/16`), then furniture. Furniture ruling already made (see `docs/09`): small pieces are grid items; any single large piece is carried in both hands with no sprint and no fighting, and no other penalty. **Tabled by Michael:** water and power shutoff, until the moment-to-moment game is fuller. Parked: flashlight battery, candle burn time, daylight pooled at windows, peeking through windows. Later: Tiled importer, real art last.
 - **Notes for next session:** Run with `python serve.py 8000` (a no-cache static server; plain `http.server` serves stale modules). For scripted tests in a browser console: the game now boots to a start screen, so call `window.__game.newGame()` first, then `window.__game.loop.setPaused(true)`, then drive time with `window.__game.loop.advance(seconds)`; the game otherwise runs in real time between commands. `?sheet=<id>&scale=2` on the URL renders a sprite sheet instead of the game. Interaction (E), prompt, pickups, container search, and plank boarding were built during milestone 8 in `src/interact.js` and `src/ui/prompt.js`; milestone 9 only needs the panel, container view, use/drop/equip, and food.
 
 Milestone acceptance criteria live in [docs/08-milestones.md](docs/08-milestones.md). Fixed numbers live in [docs/01-constraints.md](docs/01-constraints.md). Tunable starting values live in [docs/09-decisions.md](docs/09-decisions.md).
@@ -113,6 +113,14 @@ Milestone acceptance criteria live in [docs/08-milestones.md](docs/08-milestones
 - [x] Occluders draw at alpha 0.4.
 - [x] Silhouette pass via an offscreen canvas with `source-in`.
 - [x] Verify acceptance in the yard behind trees with player and a zombie together.
+
+## Milestone 23 — Grid inventory (see docs/21-grid-inventory.md)
+
+- [x] `src/grid.js`: pure placement rules (`fits`, `findSpot`, `add`, `moveEntry`, `transfer`, `tidy`, `fill`).
+- [x] `inventory.js`: a 6x4 bag; weight and `limit` removed. Props and bodies are bags too (`cols`, `rows`, `items` aliasing `contents`); container grids come from `loot.json`.
+- [x] `ui/inventory-panel.js` rewritten: coloured blocks, bottle water level, drag within and between bags and onto the floor, R / right-click / wheel to rotate, shift-click and double-click to send across, Tidy, right-click item menu replacing row buttons.
+- [x] Items gained `size`, `color`, `short`; lost `weight`. Candles stack to 4. `SAVE_VERSION` 4.
+- [x] Verify acceptance in docs/21 (scripted with real pointer events and passed 2026-09-17).
 
 ## Milestone 22 — Thirst and water (see docs/20-thirst.md)
 

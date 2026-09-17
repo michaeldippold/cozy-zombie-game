@@ -1,3 +1,5 @@
+> The panel described here (rows and a Drink button) was replaced the same day by the grid inventory, `21-grid-inventory.md`. Bottles are now blocks with a blue water level and a right-click Drink.
+
 # 20 — Thirst and water
 
 Milestone 22. Michael's brief (2026-09-17): water containers in your inventory that you fill up, measured 0 to 100% and not in millilitres; a draw-down rate; consequences for being out too long; interactable ways to refill. **Water and power shutoff are tabled**: wanted eventually, but they are long-game structure and the moment-to-moment game comes first. Taps never run dry for now.

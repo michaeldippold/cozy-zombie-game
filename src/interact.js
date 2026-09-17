@@ -12,6 +12,7 @@ import { getSheet } from "./assets.js";
 import { isWalkable, inBounds, wallSpriteAt } from "./node.js";
 import { getItem, rollLoot } from "./items.js";
 import { addItem, removeItem, countItem, waterContainers } from "./inventory.js";
+import * as grid from "./grid.js";
 import { emit } from "./events.js";
 
 export const INTERACT_RANGE = 1.15; // tiles
@@ -44,7 +45,7 @@ function itemActions(it, node, inv) {
     perform() {
       const added = addItem(inv, it.item, it.count, it.fill != null ? { fill: it.fill } : {});
       if (added <= 0) {
-        emit("message", { text: "Too heavy to carry." });
+        emit("message", { text: "No room in your bag." });
         return false;
       }
       it.count -= added;
@@ -69,7 +70,8 @@ function containerActions(prop) {
       if (!prop.searched) {
         prop.searched = true;
         // Anything already inside (a former survivor's backpack) stays as it is.
-        if (!prop.contents.length) prop.contents = rollLoot(prop.lootTable || prop.container);
+        // Rolled loot is placed into the grid; what does not fit is not spawned.
+        if (!prop.contents.length) grid.fill(prop, rollLoot(prop.lootTable || prop.container));
       }
       emit("containerOpened", { prop });
       return true;

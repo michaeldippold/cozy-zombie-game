@@ -16,7 +16,7 @@ Then open http://localhost:8000. The script is a plain static server with cachin
 
 ## What is in it
 
-Seven connected dioramas (a house, its yard, a street, a shop, a two-storey house, a park) with zombies simulated everywhere and drawn only where you are. Melee and a pistol, stamina, hunger, thirst, a day/night clock, containers and a weight-limited backpack, boarding doors and windows, right-click menus for every action, and a lighting system where darkness, lamps, room lights, candles, and a flashlight all change what you can see and what can see you.
+Seven connected dioramas (a house, its yard, a street, a shop, a two-storey house, a park) with zombies simulated everywhere and drawn only where you are. Melee and a pistol, stamina, hunger, thirst, a day/night clock, containers and a grid backpack you pack by dragging, boarding doors and windows, right-click menus for every action, and a lighting system where darkness, lamps, room lights, candles, and a flashlight all change what you can see and what can see you.
 
 ## Controls
 
@@ -29,7 +29,7 @@ Seven connected dioramas (a house, its yard, a street, a shop, a two-storey hous
 | F | Flashlight on/off (when carrying one). A beam that follows the mouse; it lights zombies up and gives you away |
 | Right click | Context menu with every action on the target: pick up, search, board, go through a door, walk here. Out of range actions auto-walk first |
 | E | Shortcut for the nearest pick up, search, or light switch |
-| Tab | Inventory panel |
+| Tab | Backpack. Drag items to move them, between the bag and an open container, or out onto the floor. R rotates while dragging. Shift-click sends across. Right-click an item for its actions |
 | Esc | Pause; save and quit to the title screen |
 
 Doors are doorways: walk into the opening and onto the threshold tile to go through. Standing near a door never crosses it.
@@ -57,6 +57,7 @@ Read them in order the first time. After that, `docs/00-vision.md` is the tiebre
 | [15-save-load.md](docs/15-save-load.md) | What is saved, when, and the start and pause screens. |
 | [16-zomboid-systems-fit.md](docs/16-zomboid-systems-fit.md) | Project Zomboid's systems, and which of them belong in this game. |
 | [18-death-and-survivors.md](docs/18-death-and-survivors.md) | What happens when you die: turning, your former self, the next survivor. |
+| [21-grid-inventory.md](docs/21-grid-inventory.md) | The grid inventory: sizes, rules, and controls. |
 | [20-thirst.md](docs/20-thirst.md) | Thirst, water bottles with a fill level, sinks, and body despawn. |
 | [19-bodies.md](docs/19-bodies.md) | Dead zombies are searchable containers with their own loot table. |
 | [17-moodles.md](docs/17-moodles.md) | Status icons for slow needs: what is a bar, what is a moodle, and the stages. |

@@ -56,6 +56,7 @@ The tree above is the original plan. Built since:
 | `src/ui/context-menu.js` | The right-click menu |
 | `src/clock.js` | Day/night clock: hour, phase, brightness, night factor |
 | `src/moodles.js`, `src/ui/moodles.js` | Moodle registry (pure logic) and its HUD row |
+| `src/grid.js` | Grid inventory rules: fit, first-fit placement, stacking, moving between bags, tidy. Pure |
 | `src/save.js` | One versioned `localStorage` slot: write, read, clear. Knows nothing about the game |
 | `src/light.js` | The single light function, the cached static light map, the flashlight beam, room daylight |
 | `src/sfx.js` | Synthesized placeholder sounds |

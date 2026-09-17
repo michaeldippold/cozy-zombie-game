@@ -25,6 +25,8 @@ That last one needs a second look. See "One open question" at the bottom.
 
 ### 1. Furniture you can pick up, move, and rotate
 
+*Carrying rule settled by Michael on 2026-09-17: small pieces in the grid inventory; any one large piece in both hands, no sprint or fighting, no other penalty. See `09-decisions.md`.*
+
 **Zomboid:** nearly every object is movable, gated by tools, skill, break chance, and weight. Multi-tile pieces split into parts that can be lost.
 
 **Take: yes, first, and much friendlier than Zomboid's.** This is the Habbo half of the pitch and the game has none of it yet. Drop the tools, the skill checks, and the break chance; those exist in Zomboid to make moving a fridge a project, and here rearranging the room should be a pleasure.

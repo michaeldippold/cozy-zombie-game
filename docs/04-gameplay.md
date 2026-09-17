@@ -83,10 +83,10 @@ Zombies have hp. The bat does moderate damage with knockback. The pistol does hi
 
 ## Items and inventory
 
-- Items have an id, name, weight, and a kind: `weapon`, `ammo`, `food`, `material`, `tool`, `light`. A `light` item carries `light: { radius }` and emits while it stands on the floor.
-- Inventory is a weight-limited list. Over the limit, pickup is refused with a message.
+- Items have an id, name, a size in grid cells, and a kind: `weapon`, `ammo`, `food`, `material`, `tool`, `light`. A `light` item carries `light: { radius }` and emits while it stands on the floor.
+- Inventory is a 6x4 grid of cells (`21-grid-inventory.md`). There is no weight. If an item fits nowhere, pickup is refused with a message.
 - Actions per item: use, drop, equip. Weapons equip. Food is used to restore health. Ammo is used automatically by the pistol. Planks are used through the world interaction, not the panel.
-- The inventory panel is a DOM panel toggled with `Tab`. When a container is open, its contents show beside the inventory with move buttons.
+- The inventory panel is a DOM panel toggled with `Tab`. When a container is open, its grid shows beside the backpack; items are dragged between them, or sent across with shift-click. Right-click an item for its actions.
 - The demo contains: bat, pistol, pistol ammo, one food item, a few planks.
 
 ## HUD

@@ -12,6 +12,7 @@ import * as sim from "./sim.js";
 import * as clock from "./clock.js";
 import * as light from "./light.js";
 import * as save from "./save.js";
+import * as grid from "./grid.js";
 import { loadItems, loadLoot, getItem } from "./items.js";
 import { nearestWalkable } from "./node.js";
 import { createPlayer, updatePlayer, damagePlayer, autoWalk, cancelAutoWalk } from "./entities/player.js";
@@ -328,78 +329,93 @@ function autoDrink() {
   sfx.eat();
 }
 
-// How many of an item move at once: whole stack for stackables, one otherwise.
-function moveCount(id, available) {
-  return getItem(id).stack ? available : 1;
+// ---- inventory panel (docs/21-grid-inventory.md) ----
+
+// Use an entry from the backpack: eat, drink, toggle.
+function useEntry(entry) {
+  const def = getItem(entry.id);
+  if (def.kind === "tool") {
+    toggleFlashlight();
+    return;
+  }
+  if (def.kind === "drink") {
+    if (!(entry.fill > 0)) return;
+    if (drinkFrom(entry) <= 0) showMessage("Not thirsty right now.");
+    else sfx.eat();
+    return;
+  }
+  if (def.kind !== "food") return;
+  const wantsFood = player.hp < player.maxHp || player.hunger < player.maxHunger;
+  const wantsDrink = (def.thirst || 0) > 0 && player.thirst < player.maxThirst;
+  if (!wantsFood && !wantsDrink) {
+    showMessage(def.verb === "Drink" ? "Not thirsty right now." : "Not hungry right now.");
+    return;
+  }
+  entry.count -= 1;
+  if (entry.count <= 0) inventory.removeEntry(inv, entry);
+  player.hp = Math.min(player.maxHp, player.hp + (def.heal || 0));
+  player.hunger = Math.min(player.maxHunger, player.hunger + (def.hunger || 0));
+  player.thirst = Math.max(0, Math.min(player.maxThirst, player.thirst + (def.thirst || 0)));
+  showMessage(`${def.verb === "Drink" ? "Drank" : "Ate"} ${def.name}.`);
+  sfx.eat();
+}
+
+// Put a whole entry on the floor at the player's feet, from any open bag.
+function dropEntry(entry, bag) {
+  grid.remove(bag, entry);
+  dropAt(entry.id, entry.count, propsOf(entry));
+  inventory.fixEquipped(inv);
 }
 
 const panelHandlers = {
-  equip(id) {
-    inventory.equip(inv, id);
+  // Anything moved: the equipped weapon may have left the bag.
+  changed() {
+    inventory.fixEquipped(inv);
   },
-  use(id, fill = null) {
-    const def = getItem(id);
-    if (def.kind === "tool") {
-      toggleFlashlight();
-      return;
-    }
-    if (def.kind === "drink") {
-      const entry = inv.items.find((it) => it.id === id && (fill === null || it.fill === fill) && it.fill > 0);
-      if (!entry) return;
-      if (drinkFrom(entry) <= 0) showMessage("Not thirsty right now.");
-      else sfx.eat();
-      return;
-    }
-    if (def.kind !== "food") return;
-    const wantsFood = player.hp < player.maxHp || player.hunger < player.maxHunger;
-    const wantsDrink = (def.thirst || 0) > 0 && player.thirst < player.maxThirst;
-    if (!wantsFood && !wantsDrink) {
-      showMessage(def.verb === "Drink" ? "Not thirsty right now." : "Not hungry right now.");
-      return;
-    }
-    inventory.removeItem(inv, id, 1);
-    player.hp = Math.min(player.maxHp, player.hp + (def.heal || 0));
-    player.hunger = Math.min(player.maxHunger, player.hunger + (def.hunger || 0));
-    player.thirst = Math.max(0, Math.min(player.maxThirst, player.thirst + (def.thirst || 0)));
-    showMessage(`${def.verb === "Drink" ? "Drank" : "Ate"} ${def.name}.`);
-    sfx.eat();
+  dropToFloor(entry, bag) {
+    dropEntry(entry, bag);
   },
-  drop(id, fill = null) {
-    if (fill !== null) {
-      const entry = inventory.takeEntry(inv, id, fill);
-      if (entry) dropAt(id, 1, propsOf(entry));
-      return;
-    }
-    const n = moveCount(id, inventory.countItem(inv, id));
-    const removed = inventory.removeItem(inv, id, n);
-    if (removed > 0) dropAt(id, removed);
+  noRoom(intoBag) {
+    showMessage(intoBag ? "No room in your bag." : "No room in there.");
   },
-  take(id, fill = null) {
-    if (!openContainer) return;
-    const stack = openContainer.contents.find((it) => it.id === id && (fill === null || it.fill === fill));
-    if (!stack) return;
-    const added = inventory.addItem(inv, id, stack.count, propsOf(stack));
-    if (added <= 0) {
-      showMessage("Too heavy to carry.");
-      return;
+  // Right-click menu for an item. `other` is the other open bag, or null.
+  itemMenu(entry, bag, other) {
+    const def = getItem(entry.id);
+    const mine = bag === inv;
+    const out = [];
+    if (mine && def.kind === "weapon") out.push({ label: inv.equipped === entry.id ? "Equipped" : "Equip", enabled: inv.equipped !== entry.id, onSelect: () => inventory.equip(inv, entry.id) });
+    if (mine && def.kind === "food") out.push({ label: def.verb || "Eat", enabled: true, onSelect: () => useEntry(entry) });
+    if (mine && def.kind === "drink") out.push({ label: `Drink (${Math.round(entry.fill || 0)}%)`, enabled: entry.fill > 0, onSelect: () => useEntry(entry) });
+    if (mine && def.kind === "tool") out.push({ label: "Toggle (F)", enabled: true, onSelect: () => useEntry(entry) });
+    if (other) {
+      out.push({
+        label: mine ? "Store" : "Take",
+        enabled: true,
+        onSelect: () => {
+          if (!grid.transfer(bag, other, entry)) panelHandlers.noRoom(other === inv);
+        },
+      });
     }
-    stack.count -= added;
-    if (stack.count <= 0) openContainer.contents.splice(openContainer.contents.indexOf(stack), 1);
-  },
-  store(id, fill = null) {
-    if (!openContainer) return;
-    if (fill !== null) {
-      const entry = inventory.takeEntry(inv, id, fill);
-      if (entry) openContainer.contents.push(entry);
-      return;
+    if (def.kind === "light") {
+      // Placing sets down one candle, not the stack.
+      out.push({
+        label: "Place",
+        enabled: true,
+        onSelect: () => {
+          entry.count -= 1;
+          if (entry.count <= 0) grid.remove(bag, entry);
+          dropAt(entry.id, 1);
+        },
+      });
+      if (entry.count > 1) out.push({ label: "Drop all", enabled: true, onSelect: () => dropEntry(entry, bag) });
+    } else {
+      out.push({ label: "Drop", enabled: true, onSelect: () => dropEntry(entry, bag) });
     }
-    const n = moveCount(id, inventory.countItem(inv, id));
-    const removed = inventory.removeItem(inv, id, n);
-    if (removed <= 0) return;
-    const stack = openContainer.contents.find((it) => it.id === id);
-    if (stack) stack.count += removed;
-    else openContainer.contents.push({ id, count: removed });
+    return out;
   },
+  // Kept for scripted tests.
+  useEntry,
+  dropEntry,
 };
 
 function updateInventoryUi() {
@@ -800,7 +816,7 @@ async function boot() {
   // The world is built and drawn, but nothing moves until a button is pressed.
   openStartScreen();
   window.__game = {
-    iso, input, loop, assets, events, combat, inventory, world, sim, clock, light, getItem, menu,
+    iso, input, loop, assets, events, combat, inventory, grid, world, sim, clock, light, getItem, menu,
     get node() { return node; },
     get player() { return player; },
     get inv() { return inv; },

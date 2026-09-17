@@ -6,6 +6,14 @@ Rulings follow the tiebreaker in `00-vision.md`: what best serves a cozy Habbo-s
 
 ## Decisions
 
+### 2026-09-17 — Grid inventory, and how furniture is carried (Michael's rulings)
+
+- **The inventory is a grid and weight is gone.** Michael: rows suit Zomboid because it has endless items; a grid suits a game with dozens, is visual, makes drag and drop natural, and shows "full" without a number. He never wants weight to slow the player, so nothing is lost. Settled before more loot is added. Built as `21-grid-inventory.md`.
+- **Drag and drop between the bag and whatever is open**, in both directions, with rotation. Right-click item menus replace row buttons, so acting on things works one way everywhere.
+- **Art is solid coloured blocks** for now, with the water bottle filling blue to its level.
+- **Furniture (for the coming milestone):** small pieces are grid items. **Any single large piece can be carried in both hands: no sprint, no fighting, and no other penalty.** If you are willing to waddle, you can carry anything carryable (not cars). Michael: this makes decorating fun and not a chore, and it is the payoff of dropping weight and Zomboid's complexity with it.
+- Plank is 1x4 on purpose: hauling boards home is a choice. Tunable, like every size.
+
 ### 2026-09-17 — Thirst, and what is tabled (Michael's brief)
 
 - **Water containers have a fill level, 0 to 100%**, not millilitres. Draw-down, consequences, refill points. Built as `20-thirst.md`.
@@ -175,6 +183,8 @@ Values as of the end of milestone 11 (2026-09-14). Tuned only lightly; hands-on 
 
 | Tunable | Value | Where |
 |---|---|---|
+| Backpack grid | 6x4 | `inventory.js` |
+| Item sizes, container grids | see `21-grid-inventory.md` | `items.json`, `loot.json` |
 | Thirst drain / parched threshold / parched regen / dehydration damage | 100 per 420 s / 15 / ×0.5 / 3 hp per s | `player.js` |
 | Auto-drink threshold | thirst under 60 | `main.js` |
 | Bottle capacity / soda / chips | 100 thirst / +35 / −8 | `items.json` |
