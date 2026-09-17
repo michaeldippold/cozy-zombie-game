@@ -331,8 +331,9 @@ function autoDrink() {
 
 // ---- inventory panel (docs/21-grid-inventory.md) ----
 
-// Use an entry from the backpack: eat, drink, toggle.
-function useEntry(entry) {
+// Use an entry: eat, drink, toggle. Food and drink work straight out of an
+// open container or body too, so consumables need not take up bag space.
+function useEntry(entry, bag = inv) {
   const def = getItem(entry.id);
   if (def.kind === "tool") {
     toggleFlashlight();
@@ -352,7 +353,10 @@ function useEntry(entry) {
     return;
   }
   entry.count -= 1;
-  if (entry.count <= 0) inventory.removeEntry(inv, entry);
+  if (entry.count <= 0) {
+    grid.remove(bag, entry);
+    inventory.fixEquipped(inv);
+  }
   player.hp = Math.min(player.maxHp, player.hp + (def.heal || 0));
   player.hunger = Math.min(player.maxHunger, player.hunger + (def.hunger || 0));
   player.thirst = Math.max(0, Math.min(player.maxThirst, player.thirst + (def.thirst || 0)));
@@ -384,8 +388,8 @@ const panelHandlers = {
     const mine = bag === inv;
     const out = [];
     if (mine && def.kind === "weapon") out.push({ label: inv.equipped === entry.id ? "Equipped" : "Equip", enabled: inv.equipped !== entry.id, onSelect: () => inventory.equip(inv, entry.id) });
-    if (mine && def.kind === "food") out.push({ label: def.verb || "Eat", enabled: true, onSelect: () => useEntry(entry) });
-    if (mine && def.kind === "drink") out.push({ label: `Drink (${Math.round(entry.fill || 0)}%)`, enabled: entry.fill > 0, onSelect: () => useEntry(entry) });
+    if (def.kind === "food") out.push({ label: def.verb || "Eat", enabled: true, onSelect: () => useEntry(entry, bag) });
+    if (def.kind === "drink") out.push({ label: `Drink (${Math.round(entry.fill || 0)}%)`, enabled: entry.fill > 0, onSelect: () => useEntry(entry, bag) });
     if (mine && def.kind === "tool") out.push({ label: "Toggle (F)", enabled: true, onSelect: () => useEntry(entry) });
     if (other) {
       out.push({
