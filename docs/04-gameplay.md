@@ -36,6 +36,10 @@ Noise is an event: `{ node, tile, loudness }`.
 - The sim reads the same event and adds to the `noise` weight of edges near the tile, biasing which edge adjacent-node zombies pick. See `02-world-model.md`.
 - Gunshots are loud. Breaking glass is moderate. Melee and footsteps are silent in the demo.
 
+## Light and being seen
+
+See `docs/12-lighting.md`. Zombies see the player by the light on the player's tile: full range in daylight or a lamp pool, about a third of it unlit at night. A **flashlight** (F) casts a cone along the aim that stops at walls and trees; any zombie in the beam sees the player, full stop, and the light itself raises the neighbourhood's alarm at night. Carrying a lit torch also makes the player a visible point in the dark.
+
 ## Zombies
 
 Dumb on purpose. Any cleverness comes from distribution and persistence, not from the individual.
@@ -43,7 +47,7 @@ Dumb on purpose. Any cleverness comes from distribution and persistence, not fro
 ### In the player's node
 
 - States: `idle`, `wander`, `chase`, `attack`, `hurt`, `die`.
-- **Aggro** on line of sight within a sight range, or on noise within range. Line of sight is a ray against the shot-blocking grid.
+- **Aggro** on line of sight within a sight range, or on noise within range. Line of sight is a ray against the shot-blocking grid. Sight range scales with the light on the player (`docs/12-lighting.md`); the flashlight beam is guaranteed sight.
 - **Chase** uses grid A\* to the player's tile. Repath every 300 ms or when the player changes tile, not every frame. Move along the path at slow walk speed.
 - **Attack** when within contact range. Small damage, ~1 s cooldown per zombie. No grab or lunge in the demo.
 - Zombies are solid to each other loosely: a soft separation push so they do not stack on one tile, no hard collision.

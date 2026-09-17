@@ -6,6 +6,15 @@ Rulings follow the tiebreaker in `00-vision.md`: what best serves a cozy Habbo-s
 
 ## Decisions
 
+### 2026-09-17 — Milestone 14, flashlight and light-aware zombies
+
+- **Light is one function.** `light.lightAt(node, gx, gy, player)` returns 0..1 and everything reads it: zombie sight, the sim's flashlight alarm, the debug line. Milestone 15 swaps its inside for a per-tile map without touching callers. Scoped in `docs/12-lighting.md` at Michael's request; he expects the map to pay for itself as the game grows.
+- **Zombie sight scales with the light on the player, not on the zombie.** What matters is whether *you* are visible. Full dark and unlit gives about a third of the daylight range; a lamp pool or daylight gives all of it.
+- **A zombie in the beam always sees you.** Michael: throwing a flashlight beam on a zombie should basically guarantee aggro. It does, subject only to line of sight, which the beam already respects.
+- **Carrying a lit flashlight adds light to the player.** You can see, and you can be seen. Without this the torch would be free.
+- **The beam is screen-space in angle, grid-space in reach.** Aim is a screen vector, walls are grid tiles. Rays fan across the screen arc, march in grid space, and stop at shot-blocking tiles, so the drawn beam and the sight test share one geometry and the beam stops at trees for free.
+- **No battery yet.** A later limiter, alongside weapon degradation. One flashlight in the starting kit for now so it gets played with.
+
 ### 2026-09-17 — Night is moonlight, not fog
 
 - **Unlit outdoors at night is a blue moonlight tint, never black.** The first light-punch version used a 50% indigo alpha wash over an already dark palette; Michael: "pitch black outside of lit places is definitely not going to work." Switched the night layer to a lighter tint composited with `multiply`, so colours darken proportionally and stay readable (an unlit tile keeps 55–80% per channel), widened the lit pools with a softer falloff, and added a warm additive glow at lamps. The mechanic (lamps and lit windows are meaningfully brighter) survives; the fog does not. Also matches the vision doc's "never fully black".
@@ -133,6 +142,11 @@ Values as of the end of milestone 11 (2026-09-14). Tuned only lightly; hands-on 
 | Night tint colour / alpha / blend | rgb(120,135,200) / 0.85 × nightFactor / multiply, outdoor nodes only (was a 50% indigo alpha wash: too dark) | `render.js` |
 | Light-punch radius: window / lamp | 95 px / 140 px (was 70 / 100) | `render.js` |
 | Lamp warm glow alpha / radius | 0.22 × nightFactor / 60% of the lamp punch radius | `render.js` |
+| Light model: lamp / window radius (tiles) | 2.4 / 1.8 | `light.js` |
+| Flashlight beam range / arc | 6 tiles / 44° | `items.json` |
+| Flashlight self-light | +0.5 on the player's tile while on | `light.js` |
+| Zombie sight in full dark, unlit | 35% of ZOMBIE_SIGHT (about 2 tiles) | `zombie.js` |
+| Flashlight alarm | 1.2 × nightFactor per sim tick, outdoors, when nightFactor > 0.2 | `main.js` |
 | Window glow radius / peak alpha (decorative only) | 20 px / 0.55 × nightFactor | `render.js` |
 | Hunger max / drain | 100, full drain over 600 s (10 min) of continuous play | `entities/player.js` |
 | Starvation damage | 3 hp/s while hunger is 0 | `entities/player.js` |

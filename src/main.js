@@ -10,6 +10,7 @@ import * as inventory from "./inventory.js";
 import * as world from "./world.js";
 import * as sim from "./sim.js";
 import * as clock from "./clock.js";
+import * as light from "./light.js";
 import { loadItems, loadLoot, getItem } from "./items.js";
 import { nearestWalkable } from "./node.js";
 import { createPlayer, updatePlayer, damagePlayer, autoWalk, cancelAutoWalk } from "./entities/player.js";
@@ -28,7 +29,8 @@ const CANVAS_H = 540;
 const THRESHOLD_TRIGGER_DIST = 0.3; // tiles from a threshold tile center to cross
 const EDGE_REARM_DIST = 0.6; // must move this far from the arrival tile before crossing again
 const CONTAINER_CLOSE_DIST = 1.6;
-const STARTING_ITEMS = [["bat", 1], ["pistol", 1], ["ammo_9mm", 12]];
+const STARTING_ITEMS = [["bat", 1], ["pistol", 1], ["ammo_9mm", 12], ["flashlight", 1]];
+const FLASHLIGHT_ALARM = 1.2; // alarm added to the current node per sim tick while on, outdoors, at night
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
@@ -150,6 +152,10 @@ const panelHandlers = {
   },
   use(id) {
     const def = getItem(id);
+    if (def.kind === "tool") {
+      toggleFlashlight();
+      return;
+    }
     if (def.kind !== "food") return;
     if (player.hp >= player.maxHp && player.hunger >= player.maxHunger) {
       showMessage("Not hungry right now.");
@@ -236,16 +242,36 @@ function handleInteractionInput() {
   if (input.wasPressed("KeyE") && simple && !player.action) startAction(player, simple);
 }
 
+// ---- flashlight ----
+
+function toggleFlashlight() {
+  if (inventory.countItem(inv, "flashlight") <= 0) {
+    showMessage("No flashlight.");
+    return;
+  }
+  player.flashlightOn = !player.flashlightOn;
+  player.beam = getItem("flashlight").beam;
+  showMessage(player.flashlightOn ? "Flashlight on." : "Flashlight off.");
+}
+
+// Dropping or storing the last flashlight switches it off.
+function syncFlashlight() {
+  if (player.flashlightOn && inventory.countItem(inv, "flashlight") <= 0) player.flashlightOn = false;
+}
+
 // ---- input ----
 
 function hudState() {
   const weapon = inventory.equippedWeapon(inv);
   let ammoText = "";
   if (weapon && !weapon.melee) ammoText = `${inventory.countItem(inv, weapon.ammo)} rounds`;
-  return { player, node, weaponName: weapon ? weapon.name : "Unarmed", ammoText };
+  const hasLight = inventory.countItem(inv, "flashlight") > 0;
+  const lightText = hasLight ? `Flashlight ${player.flashlightOn ? "on" : "off"} (F)` : "";
+  return { player, node, weaponName: weapon ? weapon.name : "Unarmed", ammoText, lightText };
 }
 
 function handleCombatInput() {
+  if (input.wasPressed("KeyF")) toggleFlashlight();
   if (input.wasPressed("Digit1")) inventory.equip(inv, "bat");
   if (input.wasPressed("Digit2")) inventory.equip(inv, "pistol");
   const wheel = input.takeWheel();
@@ -284,6 +310,7 @@ function update(dt) {
   }
   updateMessage(dt);
   updateInventoryUi();
+  syncFlashlight();
 
   updateHud(hudState());
   input.endStep();
@@ -291,6 +318,8 @@ function update(dt) {
 
 function simTick(dt) {
   if (gameOver) return;
+  // Light in darkness is a tell the neighbourhood can feel.
+  if (player.flashlightOn && node.outdoor && clock.nightFactor() > 0.2) sim.addAlarm(node.id, FLASHLIGHT_ALARM * clock.nightFactor());
   const arrivals = sim.tick(node.id, dt);
   for (const a of arrivals) {
     const ref = a.edge ? world.refFor(a.edge, node.id) : null;
@@ -301,7 +330,7 @@ function simTick(dt) {
 function render() {
   ctx.fillStyle = "#1c1c24";
   ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-  renderNode(ctx, node, [player, ...zombies], { wallVariantAt: world.wallVariantAt });
+  renderNode(ctx, node, [player, ...zombies], { wallVariantAt: world.wallVariantAt, player });
   combat.renderEffects(ctx);
 
   debugEl.textContent =
@@ -444,7 +473,7 @@ async function boot() {
 
   loop.start({ update, render, simTick }, { simIntervalMs: 1000 });
   window.__game = {
-    iso, input, loop, assets, events, combat, inventory, world, sim, clock, getItem, menu,
+    iso, input, loop, assets, events, combat, inventory, world, sim, clock, light, getItem, menu,
     get node() { return node; },
     get player() { return player; },
     get inv() { return inv; },

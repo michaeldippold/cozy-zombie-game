@@ -329,6 +329,15 @@ export function onNoise({ node: nodeId, tile, loudness }) {
   }
 }
 
+// Direct alarm without a noise event: light in darkness, for example. Spreads
+// one hop at the usual rate.
+export function addAlarm(nodeId, amount, hops = 1) {
+  for (const [id, h] of hopDistances(nodeId)) {
+    if (h > hops) continue;
+    alarm.set(id, alarmOf(id) + amount * Math.pow(ALARM_SPREAD, h));
+  }
+}
+
 export function onPlayerCrossed(edge) {
   edge.scent += SCENT_WEIGHT;
 }

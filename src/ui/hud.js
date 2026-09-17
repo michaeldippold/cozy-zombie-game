@@ -19,6 +19,7 @@ export function initHud() {
       <div class="hud-hunger"><div class="hud-hunger-fill"></div></div>
     </div>
     <div class="hud-row hud-weapon"><span class="hud-weapon-name">Unarmed</span><span class="hud-ammo"></span></div>
+    <div class="hud-light"></div>
     <div class="hud-node"></div>
     <div class="hud-clock"></div>
   `;
@@ -29,13 +30,14 @@ export function initHud() {
     hunger: root.querySelector(".hud-hunger-fill"),
     weapon: root.querySelector(".hud-weapon-name"),
     ammo: root.querySelector(".hud-ammo"),
+    light: root.querySelector(".hud-light"),
     node: root.querySelector(".hud-node"),
     clock: root.querySelector(".hud-clock"),
   };
   root.hidden = false;
 }
 
-export function updateHud({ player, node, weaponName = "Unarmed", ammoText = "" }) {
+export function updateHud({ player, node, weaponName = "Unarmed", ammoText = "", lightText = "" }) {
   const pct = Math.max(0, Math.min(1, player.hp / player.maxHp));
   els.fill.style.width = `${Math.round(pct * 100)}%`;
   els.fill.style.background = pct > 0.5 ? "#6fbf5f" : pct > 0.25 ? "#d9b84a" : "#d05050";
@@ -51,6 +53,8 @@ export function updateHud({ player, node, weaponName = "Unarmed", ammoText = "" 
 
   els.weapon.textContent = weaponName;
   els.ammo.textContent = ammoText;
+  els.light.textContent = lightText;
+  els.light.classList.toggle("on", !!player.flashlightOn);
   els.node.textContent = node.name;
   els.clock.textContent = clock.getLabel();
 }

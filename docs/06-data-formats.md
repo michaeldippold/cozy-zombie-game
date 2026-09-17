@@ -150,7 +150,8 @@ A sheet may declare `bounds: { x, y, w, h }` (relative to the frame) as its visi
   { "id": "bat",    "name": "Baseball bat", "kind": "weapon", "weight": 2, "damage": 25, "range": 1.2, "knockback": 0.6, "cooldown": 0.5 },
   { "id": "pistol", "name": "Pistol",       "kind": "weapon", "weight": 1.5, "damage": 60, "ammo": "ammo_9mm", "loudness": 12, "cooldown": 0.35 },
   { "id": "ammo_9mm", "name": "9mm rounds", "kind": "ammo", "weight": 0.05, "stack": 30 },
-  { "id": "can_beans", "name": "Can of beans", "kind": "food", "weight": 0.5, "heal": 30 },
+  { "id": "can_beans", "name": "Can of beans", "kind": "food", "weight": 0.5, "heal": 30, "hunger": 45 },
+  { "id": "flashlight", "name": "Flashlight", "kind": "tool", "weight": 0.6, "beam": { "range": 6, "arc": 44 } },
   { "id": "plank",  "name": "Plank",        "kind": "material", "weight": 1.5, "barricadeHp": 60 }
 ]
 ```

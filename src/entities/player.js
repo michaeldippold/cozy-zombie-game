@@ -43,6 +43,8 @@ export function createPlayer(gx, gy) {
     hunger: HUNGER_MAX,
     maxHunger: HUNGER_MAX,
     starving: false,
+    flashlightOn: false,
+    beam: null, // { range, arc } from the flashlight item while one is carried
     moving: false, // keyboard movement this step
     anim: createAnimation("idle"),
     attackCooldown: 0,

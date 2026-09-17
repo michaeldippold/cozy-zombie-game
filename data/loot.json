@@ -2,5 +2,5 @@
   "fridge":  { "rolls": [1, 3], "entries": [ { "item": "can_beans", "weight": 5 }, { "item": "nothing", "weight": 3 } ] },
   "cabinet": { "rolls": [1, 2], "entries": [ { "item": "ammo_9mm", "count": [4, 10], "weight": 3 }, { "item": "plank", "weight": 2 }, { "item": "nothing", "weight": 3 } ] },
   "dresser": { "rolls": [1, 2], "entries": [ { "item": "plank", "weight": 2 }, { "item": "can_beans", "weight": 1 }, { "item": "nothing", "weight": 3 } ] },
-  "shelf":   { "rolls": [1, 3], "entries": [ { "item": "can_beans", "weight": 3 }, { "item": "chips", "weight": 3 }, { "item": "ammo_9mm", "count": [3, 8], "weight": 2 }, { "item": "plank", "weight": 2 }, { "item": "nothing", "weight": 3 } ] }
+  "shelf":   { "rolls": [1, 3], "entries": [ { "item": "can_beans", "weight": 3 }, { "item": "chips", "weight": 3 }, { "item": "flashlight", "weight": 1 }, { "item": "ammo_9mm", "count": [3, 8], "weight": 2 }, { "item": "plank", "weight": 2 }, { "item": "nothing", "weight": 3 } ] }
 }

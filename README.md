@@ -22,6 +22,7 @@ Then open http://localhost:8000. The script is a plain static server with cachin
 | Mouse | Aim; left click attacks with the equipped weapon |
 | Shift | Sprint while moving (drains stamina) |
 | 1 / 2 / wheel | Switch between bat and pistol |
+| F | Flashlight on/off (when carrying one). A beam that follows the mouse; it lights zombies up and gives you away |
 | Right click | Context menu with every action on the target: pick up, search, board, go through a door, walk here. Out of range actions auto-walk first |
 | E | Shortcut for the nearest pick up or search |
 | Tab | Inventory panel |

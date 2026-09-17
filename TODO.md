@@ -4,8 +4,9 @@ Working checklist. A new session should read `CLAUDE.md`, then this file, then t
 
 ## Status
 
-- **Current milestone:** 13 (Hunger and day/night) complete, plus a same-day fix (2026-09-15). Seven-node neighbourhood from milestone 12, hunger, day/night, and a real light-punch darkness system.
-- **Last completed task (2026-09-17):** Michael found the light-punch night too dark between lights. Night is now a blue moonlight tint composited with multiply (everything stays readable), with wider, softer lit pools and a warm glow at lamps. Verified in yard and street at 01:00. Open design question from Michael: a flashlight item casting a beam; see the decision log and the per-tile light map option in `docs/11`.
+- **Current milestone:** 14 (Flashlight and light-aware zombies) complete (2026-09-17). Milestone 15 (per-tile light map with shadows) is scoped in `docs/12-lighting.md` and next. Seven-node neighbourhood from milestone 12, hunger, day/night, and a real light-punch darkness system.
+- **Last completed task (2026-09-17):** Milestone 14, scripted acceptance in the yard at 01:00: an unlit player is unseen at 4 tiles and seen at the same distance by day; under a lamp at night a zombie 5 tiles away notices; the flashlight beam on a zombie 5 tiles away aggros it while one just outside the arc stays idle; the beam and sight both stop at a tree; the yard's alarm rises while the torch is on at night and not by day; F toggles, dropping the last flashlight switches it off, HUD shows the state. `src/light.js` is the single light function every reader uses; milestone 15 replaces its inside.
+- **Earlier (2026-09-17):** Michael found the light-punch night too dark between lights. Night is now a blue moonlight tint composited with multiply (everything stays readable), with wider, softer lit pools and a warm glow at lamps. Verified in yard and street at 01:00. Open design question from Michael: a flashlight item casting a beam; see the decision log and the per-tile light map option in `docs/11`.
 - **Before that (2026-09-15):** Michael caught that darkness hit at 3pm, because the clock's phase boundaries were cycle fractions that never got checked against real hours. Rewrote `clock.js` to work in real hours directly: full dark 23:00-06:00 with a one-hour taper each side, new games start at 08:00. Also answered "can lights matter without a lighting engine": yes, interiors are now always lit regardless of the clock, only outdoor nodes darken, and the darkness is drawn as a wash with `destination-out` circles erased at lamp posts and lit windows, giving real lit-vs-dark visibility instead of a flat tint. Verified in-browser: 15:00 is full day, house stays bright at 1am, yard and street show lit pools around lamps and windows with proper darkness between them, 60fps holds, no console errors.
 - **Previously (2026-09-14):** Milestone 13 acceptance, scripted. Hunger drains to zero over 10 minutes with no food; eating restores hunger and health together; starvation drains health and ends the game with its own overlay ("You starved to death."). The clock cycled correctly by its (then-buggy) fractional boundaries; that bug is now fixed, see above. The clock cycles day → dusk → night → dawn correctly (verified brightness and phase at each boundary). A yard zombie was pulled toward a lit window during a paused-clock night test — that mechanic is unchanged by today's fix.
 - **Before that:** Milestone 12 acceptance. Three park chasers followed the player park → street → blue house → upstairs, arriving one by one. Two pistol shots in the house pull about a third of the neighbourhood over 150 s, mostly from the yard. A calm house sees at most one visitor in five minutes. Trickle restocked the street, yard, and park four times in six minutes, never next to the player. Decorative upstairs windows are inert. Also that session: melee costs stamina (winded swings are half damage), "Remove boards" refunds planks, browser context menu suppressed on all game DOM. Before that: right-click context menus with auto-walk, screen-space gun hit test, doorway thresholds. Before that, milestone 11.
@@ -114,6 +115,24 @@ Milestone acceptance criteria live in [docs/08-milestones.md](docs/08-milestones
 - [x] Occluders draw at alpha 0.4.
 - [x] Silhouette pass via an offscreen canvas with `source-in`.
 - [x] Verify acceptance in the yard behind trees with player and a zombie together.
+
+## Milestone 15 — Per-tile light map with shadows (see docs/12-lighting.md)
+
+- [ ] `light.js`: per-node `lightMap`, recomputed every sim tick and every frame while the flashlight is on; sources with `lineOfSight` shadows; `lightAt` becomes a bilinear read.
+- [ ] `render.js`: night layer as per-tile diamonds with alpha from the map; beam polygon stays on top.
+- [ ] `sim.js`: window light weight reads the map on the window's outdoor tile.
+- [ ] Verify acceptance in docs/12.
+
+## Milestone 14 — Flashlight and light-aware zombies (see docs/12-lighting.md)
+
+- [x] `src/light.js`: `ambientLight`, `staticLights`, `inBeam`, `beamRays`, `lightAt`.
+- [x] `items.json`: `flashlight` (kind `tool`, `beam`); sprite `item_flashlight`; starting kit and shop loot.
+- [x] Player `flashlightOn`; F toggles; panel button; dropping the last one switches it off; HUD state line.
+- [x] `render.js`: beam polygon erased from the night layer with a chest-to-range gradient, warm additive fill, stops at blocking tiles.
+- [x] `zombie.js`: sight range scales with `lightAt(player)`; in-beam is guaranteed sight.
+- [x] `sim.js`: `addAlarm`; main adds flashlight alarm outdoors at night per tick.
+- [x] Docs: 04 gameplay, 06 data, 09 decisions, README controls.
+- [x] Verify acceptance in docs/12.
 
 ## Milestone 13 — Hunger and day/night (see docs/11-hunger-and-night.md)
 

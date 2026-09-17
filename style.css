@@ -111,6 +111,15 @@ html, body {
   gap: 8px;
 }
 
+.hud-light {
+  color: #9a9aa8;
+  font-size: 11px;
+}
+
+.hud-light.on {
+  color: #f0e08a;
+}
+
 .hud-clock {
   color: #9a9aa8;
   font-size: 11px;

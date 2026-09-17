@@ -6,6 +6,8 @@ import { drawFrame, drawCharacter, resolveFacing, frameName, frameRect } from ".
 import { poly } from "./render-util.js";
 import { wallSpriteAt } from "./node.js";
 import * as clock from "./clock.js";
+import * as light from "./light.js";
+import { aimOrigin } from "./entities/player.js";
 
 const SLAB = 8; // floor thickness under the near edges
 
@@ -159,7 +161,7 @@ function collectPropLights(node, out) {
 let nightCanvas = null;
 let nightCtx = null;
 
-function drawNightOverlay(ctx, node, lightSources) {
+function drawNightOverlay(ctx, node, lightSources, player) {
   if (!node.outdoor) return;
   const n = clock.nightFactor();
   if (n <= 0.01) return;
@@ -189,11 +191,47 @@ function drawNightOverlay(ctx, node, lightSources) {
     nightCtx.fillStyle = grad;
     nightCtx.fillRect(src.x - src.radius, src.y - src.radius, src.radius * 2, src.radius * 2);
   }
+  // Flashlight beam: a polygon built from blocked rays, erased with a
+  // gradient from the chest (bright) to the range (nothing). Because the rays
+  // stop at blocking tiles, the beam ends at trees, cars, and walls for free.
+  let beamPoly = null;
+  let beamOrigin = null;
+  let beamRadius = 0;
+  const beam = light.beamOf(player);
+  if (beam) {
+    const pts = light.beamRays(node, player, beam).map((g) => iso.toScreen(g.gx, g.gy));
+    beamOrigin = aimOrigin(player);
+    beamPoly = [[beamOrigin.x, beamOrigin.y], ...pts.map((p) => [p.x, p.y])];
+    for (const p of pts) beamRadius = Math.max(beamRadius, Math.hypot(p.x - beamOrigin.x, p.y - beamOrigin.y));
+    beamRadius = Math.max(1, beamRadius);
+    nightCtx.save();
+    poly(nightCtx, beamPoly);
+    nightCtx.clip();
+    const grad = nightCtx.createRadialGradient(beamOrigin.x, beamOrigin.y, 0, beamOrigin.x, beamOrigin.y, beamRadius);
+    grad.addColorStop(0, "rgba(255,255,255,1)");
+    grad.addColorStop(0.7, "rgba(255,255,255,0.85)");
+    grad.addColorStop(1, "rgba(255,255,255,0)");
+    nightCtx.fillStyle = grad;
+    nightCtx.fillRect(beamOrigin.x - beamRadius, beamOrigin.y - beamRadius, beamRadius * 2, beamRadius * 2);
+    nightCtx.restore();
+  }
   nightCtx.globalCompositeOperation = "source-over";
 
   ctx.globalCompositeOperation = "multiply";
   ctx.drawImage(nightCanvas, 0, 0);
   ctx.globalCompositeOperation = "source-over";
+
+  if (beamPoly) {
+    ctx.save();
+    poly(ctx, beamPoly);
+    ctx.clip();
+    const grad = ctx.createRadialGradient(beamOrigin.x, beamOrigin.y, 0, beamOrigin.x, beamOrigin.y, beamRadius);
+    grad.addColorStop(0, `rgba(255, 230, 170, ${0.3 * n})`);
+    grad.addColorStop(1, "rgba(255, 230, 170, 0)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(beamOrigin.x - beamRadius, beamOrigin.y - beamRadius, beamRadius * 2, beamRadius * 2);
+    ctx.restore();
+  }
 
   // Warm glow at lamps so their pools read as lamplight.
   for (const src of lightSources) {
@@ -350,7 +388,7 @@ function entityDrawables(entities, out) {
 
 const plainVariant = () => "plain";
 
-export function renderNode(ctx, node, entities, { wallVariantAt = plainVariant, debug = null } = {}) {
+export function renderNode(ctx, node, entities, { wallVariantAt = plainVariant, debug = null, player = null } = {}) {
   drawFloor(ctx, node);
   const drawables = [];
   propDrawables(node, drawables);
@@ -379,6 +417,6 @@ export function renderNode(ctx, node, entities, { wallVariantAt = plainVariant, 
     }
   }
   for (const d of drawables) if (d.occluded) drawSilhouette(ctx, d);
-  drawNightOverlay(ctx, node, lightSources);
+  drawNightOverlay(ctx, node, lightSources, player);
   if (debug) debug(ctx, drawables);
 }

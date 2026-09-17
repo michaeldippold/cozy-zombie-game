@@ -6,9 +6,12 @@ import { findPath, lineOfSight } from "../pathfind.js";
 import { getSheet } from "../assets.js";
 import { createAnimation, playAnimation, advanceAnimation, isActiveFrame } from "../sprites.js";
 import { emit } from "../events.js";
+import { lightAt, inBeam } from "../light.js";
 
 export const ZOMBIE_SPEED = 1.2; // tiles per second
-export const ZOMBIE_SIGHT = 6; // tiles
+export const ZOMBIE_SIGHT = 6; // tiles, in full light
+// In full dark with the player unlit, sight range is this fraction of ZOMBIE_SIGHT.
+export const SIGHT_MIN_FRAC = 0.35;
 export const ZOMBIE_CONTACT = 0.7; // tiles
 export const ZOMBIE_DAMAGE = 8;
 export const ZOMBIE_COOLDOWN = 1.2; // seconds
@@ -67,8 +70,13 @@ function faceToward(z, dx, dy) {
   z.facing = iso.facingFromScreenVector(s.sx, s.sy);
 }
 
+// Sight depends on how lit the player is (docs/12-lighting.md). A zombie
+// caught in the flashlight beam always sees the player.
 function canSee(z, node, player) {
-  if (distTo(z, player) > ZOMBIE_SIGHT) return false;
+  if (inBeam(node, player, z.gx, z.gy)) return true;
+  const light = lightAt(node, player.gx, player.gy, player);
+  const range = ZOMBIE_SIGHT * (SIGHT_MIN_FRAC + (1 - SIGHT_MIN_FRAC) * light);
+  if (distTo(z, player) > range) return false;
   return lineOfSight(node, z.gx, z.gy, player.gx, player.gy);
 }
 
