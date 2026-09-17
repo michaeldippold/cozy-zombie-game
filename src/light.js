@@ -20,17 +20,37 @@ export const LIGHT_PROP_SPRITES = new Set(["lamp"]);
 export const BEAM_RAYS = 28;
 const BEAM_STEP = 0.15; // tiles per march step
 
-// Outdoors the clock rules. Indoors the room lights do, and with them off the
-// room follows the clock too: bright by day, dark at night.
+// Daylight reaches an unlit room only through its openings.
+const OPENING_DAYLIGHT = 0.5; // openness per unboarded window or doorway
+const UNLIT_ROOM_CAP = 0.88; // window-lit is slightly dimmer than lamp-lit
+
+// 0..1: how much daylight the openings of an interior admit. Boarded openings
+// admit none; a broken window is a hole and counts; stairs lead indoors.
+export function openness(node) {
+  let o = 0;
+  for (const ref of world.edgesOf(node.id)) {
+    const e = ref.edge;
+    if (e.kind === "stairs" || e.barricade) continue;
+    o += OPENING_DAYLIGHT;
+  }
+  for (const d of node.wallDecor) if (d.variant.startsWith("window")) o += OPENING_DAYLIGHT;
+  return Math.min(1, o);
+}
+
+// Outdoors the clock rules. Indoors the room lights do; with them off, the room
+// gets whatever daylight its openings let in, down to night-dark when sealed.
 export function ambientLight(node) {
-  if (!node.outdoor && node.lightsOn) return 1;
-  return clock.getBrightness();
+  if (node.outdoor) return clock.getBrightness();
+  if (node.lightsOn) return 1;
+  const floor = clock.NIGHT_BRIGHTNESS;
+  const dayFactor = 1 - clock.nightFactor();
+  return floor + (UNLIT_ROOM_CAP - floor) * dayFactor * openness(node);
 }
 
 // How much night the renderer should draw for a node, 0..1.
 export function darknessOf(node) {
-  if (!node.outdoor && node.lightsOn) return 0;
-  return clock.nightFactor();
+  const floor = clock.NIGHT_BRIGHTNESS;
+  return Math.max(0, Math.min(1, (1 - ambientLight(node)) / (1 - floor)));
 }
 
 // Static light sources of a node in grid space: [{ gx, gy, radius, kind, ... }].

@@ -139,6 +139,7 @@ function drawWalls(ctx, node, wallVariantAt) {
 
 // Lamp posts and anything else tagged as a light source, in screen space.
 function collectPropLights(node, out) {
+  if (!node.outdoor) return; // indoor lamps are furniture; the room light is the switch
   for (const prop of node.props) {
     if (!LIGHT_PROP_SPRITES.has(prop.sprite)) continue;
     const [tx, ty] = prop.tile;

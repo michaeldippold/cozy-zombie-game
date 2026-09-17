@@ -29,6 +29,16 @@ This composes with the momentum rule rather than fighting it: the door pair alre
 - A window glows only if the room behind it is lit. The rounded fake glow is gone. A lit window is a lit pane (drawn over the darkness) plus real light from the map.
 - Decorative windows have no room behind them and never glow.
 
+## Daylight comes through the openings
+
+Added the same day, after Michael boarded both windows, switched the lights off at noon, and expected darkness. He was right to: with the lights off a room was simply following the clock, as if it had no walls.
+
+- With the lights off, a room's light is `floor + (cap - floor) x dayFactor x openness`. The floor is the clock's night brightness (0.22), so a sealed room at noon is exactly as dark as midnight.
+- **Openness** is how much daylight the openings admit: 0.5 per unboarded window (intact or broken; a broken one is a hole), 0.5 per unboarded doorway or gate, 0.5 per decorative window, clamped to 1. Stairs admit none. Two windows and a door saturate it; the door alone gives half; board everything and it is 0.
+- It is uniform across the room, like the room-light boolean, not pooled at the windows. Pools of daylight on the floor are a possible refinement; the light map could do it.
+- **The cap is 0.88, not 1.** A room lit only through its windows sits slightly dimmer and cooler than one with its lamps on. This is the switch's daytime feedback: before it, flipping the lights at noon changed nothing on screen.
+- Zombie sight, the night layer, the flashlight, and candles all read the same value, so a boarded-up house by day plays exactly like night: dark, hard to see in, hard to be seen in. Barricading now costs you your free light.
+
 ## Finding the switch
 
 Zomboid's switches are hard to find, and ours would be worse. Two rules:
@@ -61,6 +71,7 @@ Flipping it is a **simple action**: `E` when it is the nearest simple thing, and
 - A placed candle lights its surroundings indoors at night, casts a shadow behind the fridge, and the yard-side window tiles stay at 0.
 - Zombie sight indoors follows the same light rule as outdoors.
 - Street lamps reach 3 tiles.
+- At noon with the lights off: all openings clear reads 0.88 (slightly dim), both windows boarded reads about 0.55, everything boarded reads 0.22 and looks like night. Lights on reads 1 in every case.
 
 ## Future ideas, deliberately not now
 

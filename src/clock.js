@@ -4,6 +4,7 @@
 export const DAY_LENGTH = 720; // seconds of real time per full 24-hour cycle
 const DAY_B = 1.0;
 const NIGHT_B = 0.22; // never fully black; this is a cozy game
+export const NIGHT_BRIGHTNESS = NIGHT_B;
 
 // Real clock hours (0-24), Zomboid-style: full dark 23:00-06:00, with a
 // one-hour taper on each side so it's not an instant switch.

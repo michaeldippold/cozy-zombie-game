@@ -14,6 +14,7 @@ Rulings follow the tiebreaker in `00-vision.md`: what best serves a cozy Habbo-s
 - **A window glows only if the room behind it is lit.** The rounded fake glow is gone, at Michael's request. A lit window is a lit pane plus real light on the ground. Decorative windows have no room and never glow.
 - **Candles light the room and never the windows.** A placed candle is a static source in the interior light map, shadows included. Window emission is driven only by the room-light boolean, so candlelight is the stealthy option.
 - **The switch is always beside the entrance, with an LED.** Michael's worry: Zomboid's switches are already hard to find. Convention plus an always-visible LED (orange off, green on) drawn over the darkness. It is a simple action so E reaches it.
+- **Indoor daylight depends on the openings.** Michael boarded both windows, turned the lights off at noon, and expected darkness; the room stayed bright because lights-off just followed the clock. Now an unlit room gets daylight in proportion to its unboarded windows and doorways, down to night-dark when sealed. Uniform across the room, by design, to match the room-light boolean. Unlit rooms cap at 0.88 so the switch has visible feedback by day.
 - **Street lamps reach 3 tiles** (was 4.5). Michael: 4ish blocks was generous.
 - **No flashlight battery or candle burn time yet.** Michael finds it fiddly for the current game and wants other survival systems first. Parked as a future idea in `13-indoor-light.md`.
 
@@ -174,6 +175,7 @@ Values as of the end of milestone 11 (2026-09-14). Tuned only lightly; hands-on 
 | Lamp warm glow alpha / radius | 0.22 × nightFactor / 60% of the lamp punch radius | `render.js` |
 | Light model: lamp / window radius (tiles) | 3.0 / 3.0 (lamps were 4.5; Michael asked for about 3) | `light.js` |
 | Candle light radius | 3.2 tiles | `items.json` |
+| Indoor daylight: per opening / cap when unlit | 0.5 openness each, saturating at 1 / 0.88 | `light.js` |
 | Near-edge stub height / window frame height | 8 px / 26 px | `placeholders.js` |
 | Light map resolution / core gain | 2 cells per tile / 1.4 (inner ~30% of a pool is fully lit) | `light.js` |
 | Flashlight beam range / arc | 6 tiles / 44° | `items.json` |

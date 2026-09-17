@@ -128,6 +128,7 @@ Milestone acceptance criteria live in [docs/08-milestones.md](docs/08-milestones
 - [x] Renderer: night layer indoors when dark, lit panes, candle flames, fake window glow removed, beam clipped to the floor.
 - [x] Candle item, loot entries, starting kit.
 - [x] Street lamp radius 3.
+- [x] Indoor daylight through openings: unlit rooms read 0.88 open, 0.55 with windows boarded, 0.22 sealed at noon (`light.js` `openness`, `ambientLight`).
 - [x] Verify acceptance in docs/13 (scripted, passed 2026-09-17).
 
 ## Milestone 15 — Per-tile light map with shadows (see docs/12-lighting.md)
