@@ -262,6 +262,14 @@ html, body {
   right: 12px;
   top: 12px;
   font-size: 13px;
+  /* Only the panels themselves take clicks. The box around them is empty
+     space over the room and must let right-clicks through to the canvas. */
+  pointer-events: none;
+}
+
+#inventory .inv-column,
+#inventory .inv-hint {
+  pointer-events: auto;
 }
 
 .inv-body {
