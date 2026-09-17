@@ -11,7 +11,7 @@ A Habbo-style isometric cozy diorama game that gets invaded by zombies. Plain HT
 
 ## Docs
 
-`docs/00` vision · `01` constraints and fixed numbers · `02` world model (nodes, edges, sim) · `03` rendering · `04` gameplay · `05` architecture and module ownership · `06` JSON data formats · `07` demo scope · `08` milestones with acceptance criteria · `09` decisions and tunables · `10` neighbourhood · `11` hunger and day/night · `12` flashlight and light map · `13` indoor light and coherent windows · **`14` lighting reference (as built; wins over 11 to 13 where they disagree)** · `15` save and load · `16` Zomboid systems and whether they fit (a menu, not a plan) · `17` moodles.
+`docs/00` vision · `01` constraints and fixed numbers · `02` world model (nodes, edges, sim) · `03` rendering · `04` gameplay · `05` architecture and module ownership · `06` JSON data formats · `07` demo scope · `08` milestones with acceptance criteria · `09` decisions and tunables · `10` neighbourhood · `11` hunger and day/night · `12` flashlight and light map · `13` indoor light and coherent windows · **`14` lighting reference (as built; wins over 11 to 13 where they disagree)** · `15` save and load · `16` Zomboid systems and whether they fit (a menu, not a plan) · `17` moodles · `18` death, turning, and the next survivor.
 
 ## Rules that are easy to forget
 

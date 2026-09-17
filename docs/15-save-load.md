@@ -1,3 +1,5 @@
+> **Superseded in part (2026-09-17):** death no longer deletes the save. See `18-death-and-survivors.md`. `SAVE_VERSION` is now 2.
+
 # 15 — Milestone 17: Save, load, and a start screen
 
 Sessions now span in-game days, and a page refresh wipes everything. Also, the game drops a first-time player straight into a live world. This milestone fixes both.

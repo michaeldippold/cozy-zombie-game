@@ -3,8 +3,8 @@
 let root = null;
 
 const CAUSES = {
-  zombie: { title: "You were eaten.", body: "The house is quiet again." },
-  starvation: { title: "You starved to death.", body: "There was food out there. You didn't reach it in time." },
+  zombie: { title: "You were eaten.", body: "And then you got back up." },
+  starvation: { title: "You starved to death.", body: "There was food out there. Something else is wearing your clothes now." },
 };
 
 export function initOverlay() {
@@ -12,24 +12,30 @@ export function initOverlay() {
   root.hidden = true;
 }
 
-export function showGameOver(onRestart, cause = "zombie") {
+// Death card (docs/18). The backdrop is lighter than usual so the player can
+// watch their former self wander behind it.
+export function showDeath({ cause = "zombie", survivor = 1, onSurvivor, onWorld }) {
   const { title, body } = CAUSES[cause] || CAUSES.zombie;
   root.innerHTML = `
     <div class="overlay-card">
       <h1>${title}</h1>
       <p>${body}</p>
-      <button class="overlay-restart">New game</button>
+      <div class="overlay-buttons">
+        <button class="overlay-survivor">New survivor<span class="overlay-sub">same world, survivor ${survivor + 1}</span></button>
+        <button class="overlay-world secondary">New world<span class="overlay-sub">start over</span></button>
+      </div>
+      <p class="overlay-note">Everything you carried is still on you. Well. On it.</p>
     </div>
   `;
-  root.querySelector(".overlay-restart").addEventListener("click", () => {
-    hideOverlay();
-    onRestart();
-  });
+  root.querySelector(".overlay-survivor").addEventListener("click", () => onSurvivor());
+  root.querySelector(".overlay-world").addEventListener("click", () => onWorld());
+  root.classList.add("overlay-light");
   root.hidden = false;
 }
 
 // Start screen. `save` is null or { label } describing the save to continue.
 export function showStartScreen({ save, onContinue, onNew }) {
+  root.classList.remove("overlay-light");
   root.innerHTML = `
     <div class="overlay-card overlay-start">
       <h1>Cozy Zombie Game</h1>
@@ -45,7 +51,7 @@ export function showStartScreen({ save, onContinue, onNew }) {
         <tr><td>F</td><td>Flashlight</td><td>1 / 2</td><td>Bat / pistol</td></tr>
         <tr><td>Esc</td><td>Pause, save and quit</td><td></td><td></td></tr>
       </table>
-      <p class="overlay-note">The game saves by itself, in this browser only. Dying deletes the save.</p>
+      <p class="overlay-note">The game saves by itself, in this browser only. If you die, the world carries on without you.</p>
     </div>
   `;
   root.querySelector(".overlay-continue")?.addEventListener("click", () => onContinue());
@@ -73,6 +79,7 @@ export function isOverlayOpen() {
 }
 
 export function hideOverlay() {
+  root.classList.remove("overlay-light");
   root.hidden = true;
   root.innerHTML = "";
 }

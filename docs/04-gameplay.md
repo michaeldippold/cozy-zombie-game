@@ -7,6 +7,7 @@
 - Float grid position. Collision against the node's walkability grid using a small circular footprint so the player slides along furniture rather than sticking.
 - Health. Death shows a game-over overlay with a restart button. Restart reloads the world state from data.
 - Walk speed is faster than zombie walk speed.
+- **Death** is not the end of the world: the character turns and wanders off carrying their backpack, and a new survivor arrives elsewhere in the same world. See `18-death-and-survivors.md`.
 - **Hunger** drains continuously. Only food restores it. At zero the player starves: health drains steadily until they eat or die. See `docs/11-hunger-and-night.md`.
 
 ## Weapons

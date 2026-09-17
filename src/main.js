@@ -18,7 +18,8 @@ import { createPlayer, updatePlayer, damagePlayer, autoWalk, cancelAutoWalk } fr
 import { createZombie, updateZombie, hearNoise } from "./entities/zombie.js";
 import { renderNode, setNightTint } from "./render.js";
 import { initHud, updateHud } from "./ui/hud.js";
-import { initOverlay, showGameOver, showStartScreen, showPause, hideOverlay } from "./ui/overlay.js";
+import { initOverlay, showDeath, showStartScreen, showPause, hideOverlay } from "./ui/overlay.js";
+import { playAnimation, advanceAnimation } from "./sprites.js";
 import { initPrompt, updatePrompt, showMessage, updateMessage } from "./ui/prompt.js";
 import * as panel from "./ui/inventory-panel.js";
 import * as menu from "./ui/context-menu.js";
@@ -31,6 +32,10 @@ const THRESHOLD_TRIGGER_DIST = 0.3; // tiles from a threshold tile center to cro
 const EDGE_REARM_DIST = 0.6; // must move this far from the arrival tile before crossing again
 const CONTAINER_CLOSE_DIST = 1.6;
 const STARTING_ITEMS = [["bat", 1], ["pistol", 1], ["ammo_9mm", 12], ["flashlight", 1], ["candle", 2]];
+// Later survivors start light; the rest is on the last one (docs/18).
+const SURVIVOR_ITEMS = [["bat", 1], ["flashlight", 1]];
+const TURN_AT = 1.5; // seconds after death that the former self gets up
+const CARD_AT = 3.2; // seconds after death that the death card appears
 const FLASHLIGHT_ALARM = 1.2; // alarm added to the current node per sim tick while on, outdoors, at night
 
 const canvas = document.getElementById("game");
@@ -46,6 +51,8 @@ let inv = null;
 let zombies = [];
 let gameOver = false;
 let openContainer = null; // prop whose contents are shown beside the inventory
+let survivor = 1; // how many characters this world has had
+let death = null; // { t, cause, turned, carded } while the player is dead
 let started = false; // a game has been started or continued; nothing saves before this
 let pauseOpen = false;
 let autosaveTimer = 0;
@@ -86,7 +93,7 @@ function tileOccupied(tx, ty) {
 
 function materialize(rec, tile) {
   const spot = nearestWalkable(node, tile[0], tile[1], tileOccupied) || tile;
-  const z = createZombie(spot[0], spot[1], { id: rec.id, hp: rec.hp, aggro: rec.aggro, dead: rec.state === "dead" });
+  const z = createZombie(spot[0], spot[1], { id: rec.id, hp: rec.hp, aggro: rec.aggro, dead: rec.state === "dead", former: rec.former, loot: rec.loot });
   zombies.push(z);
   return z;
 }
@@ -129,7 +136,9 @@ function snapshot() {
     version: save.SAVE_VERSION,
     savedAt: Date.now(),
     clock: clock.getElapsed(),
+    survivor,
     player: {
+      dead: gameOver,
       node: node.id,
       gx: player.gx,
       gy: player.gy,
@@ -169,13 +178,17 @@ function applySnapshot(s) {
   player.arrivedTile = [Math.round(player.gx), Math.round(player.gy)];
   inv.items = s.inv.items.map((i) => ({ ...i }));
   inv.equipped = s.inv.equipped;
+  survivor = s.survivor || 1;
   light.resetCache();
   materializeNode();
+  // Saved on the death card: the world goes on with someone new.
+  if (s.player.dead) newSurvivor();
   updateHud(hudState());
 }
 
-function saveGame() {
-  if (!started || gameOver) return false;
+// `force` is for the one save made while dead, at the moment of turning.
+function saveGame(force = false) {
+  if (!started || (gameOver && !force)) return false;
   autosaveTimer = 0;
   return save.write(snapshot());
 }
@@ -198,7 +211,9 @@ function saveLabel() {
   const s = save.read();
   if (!s) return null;
   const n = data.nodes.find((d) => d.id === s.player?.node);
-  return { label: `${clock.formatLabel(s.clock || 0)} · ${n ? n.name : "somewhere"}` };
+  const who = (s.survivor || 1) > 1 || s.player?.dead ? `Survivor ${(s.survivor || 1) + (s.player?.dead ? 1 : 0)} · ` : "";
+  const where = s.player?.dead ? "a new arrival" : n ? n.name : "somewhere";
+  return { label: `${who}${clock.formatLabel(s.clock || 0)} · ${where}` };
 }
 
 // ---- start screen and pause ----
@@ -221,6 +236,7 @@ function newGame() {
 function continueGame() {
   const ok = loadSaved();
   started = true;
+  saveGame(); // a death save has just become a new survivor; record that now
   hideOverlay();
   loop.setPaused(false);
   if (!ok) showMessage("That save could not be loaded. Starting fresh.", 4);
@@ -265,8 +281,7 @@ function checkTransitions() {
 // ---- inventory actions ----
 
 // Put items on the floor at the player's tile, merging with a matching pile.
-function dropAt(id, count) {
-  const tile = [Math.round(player.gx), Math.round(player.gy)];
+function dropAt(id, count, tile = [Math.round(player.gx), Math.round(player.gy)]) {
   const existing = node.items.find((it) => it.item === id && it.tile[0] === tile[0] && it.tile[1] === tile[1]);
   if (existing) existing.count += count;
   else node.items.push({ item: id, tile, count });
@@ -420,6 +435,7 @@ function handleCombatInput() {
 
 function update(dt) {
   if (gameOver) {
+    afterlife(dt);
     input.endStep();
     return;
   }
@@ -457,9 +473,9 @@ function update(dt) {
 }
 
 function simTick(dt) {
-  if (gameOver) return;
+  // The sim keeps running while the player is dead: the world goes on.
   // Light in darkness is a tell the neighbourhood can feel.
-  if (player.flashlightOn && node.outdoor && clock.nightFactor() > 0.2) sim.addAlarm(node.id, FLASHLIGHT_ALARM * clock.nightFactor());
+  if (!gameOver && player.flashlightOn && node.outdoor && clock.nightFactor() > 0.2) sim.addAlarm(node.id, FLASHLIGHT_ALARM * clock.nightFactor());
   const arrivals = sim.tick(node.id, dt);
   for (const a of arrivals) {
     const ref = a.edge ? world.refFor(a.edge, node.id) : null;
@@ -470,7 +486,7 @@ function simTick(dt) {
 function render() {
   ctx.fillStyle = "#1c1c24";
   ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-  renderNode(ctx, node, [player, ...zombies], { wallVariantAt: world.wallVariantAt, player });
+  renderNode(ctx, node, death?.turned ? zombies : [player, ...zombies], { wallVariantAt: world.wallVariantAt, player });
   combat.renderEffects(ctx);
 
   debugEl.textContent =
@@ -491,9 +507,101 @@ function render() {
 function checkGameOver(cause) {
   if (gameOver || player.hp > 0) return;
   gameOver = true;
+  death = { t: 0, cause, turned: false, carded: false };
+  player.dead = true;
+  player.flashlightOn = false;
+  player.beam = null;
+  player.action = null;
+  cancelAutoWalk(player);
   menu.closeContextMenu();
-  save.clear(); // Zomboid rules: dying deletes the save
-  showGameOver(newGame, cause);
+  panel.setOpen(false);
+  openContainer = null;
+  updatePrompt(null, null);
+  playAnimation(player.anim, "die", true);
+  // Nothing left to chase.
+  for (const z of zombies) {
+    if (z.dead || z.state === "die") continue;
+    z.aggro = false;
+    z.state = "idle";
+    z.path = [];
+  }
+}
+
+// ---- death and the next survivor (docs/18-death-and-survivors.md) ----
+
+// The world keeps going while the player is dead: they fall, get back up as a
+// zombie carrying their backpack, and wander while the death card is shown.
+function afterlife(dt) {
+  death.t += dt;
+  clock.update(dt);
+  light.update(node);
+  if (!death.turned) advanceAnimation(player.anim, assets.getSheet("player"), dt);
+  if (!death.turned && death.t >= TURN_AT) turn();
+  for (const z of zombies) updateZombie(z, dt, node, player, zombies);
+  updateMessage(dt);
+  if (!death.carded && death.t >= CARD_AT) {
+    death.carded = true;
+    showDeath({ cause: death.cause, survivor, onSurvivor: newSurvivor, onWorld: newGame });
+  }
+  updateHud(hudState());
+}
+
+function turn() {
+  death.turned = true;
+  const z = createZombie(player.gx, player.gy, {
+    id: `former${survivor}`,
+    former: true,
+    loot: inv.items.map((i) => ({ ...i })),
+    rising: true,
+  });
+  zombies.push(z);
+  inv.items = [];
+  inv.equipped = null;
+  saveGame(true);
+}
+
+// Same world, new character. Arrives wherever is quietest, away from the body.
+function newSurvivor() {
+  const diedIn = node.id;
+  sim.dematerializeAll(zombies, node.id, null);
+  zombies = [];
+  const counts = sim.nodeCounts();
+  const hops = sim.hopDistances(diedIn);
+  let best = null;
+  for (const n of world.world.nodes.values()) {
+    if (n.id === diedIn) continue;
+    const c = counts[n.id] || 0;
+    const h = hops.get(n.id) || 0;
+    if (!best || c < best.c || (c === best.c && h > best.h)) best = { n, c, h };
+  }
+  node = best ? best.n : node;
+  world.setCurrent(node.id);
+  centerNode(node);
+  const want = node.id === data.start ? node.spawns.player : [Math.floor(node.width / 2), Math.floor(node.height / 2)];
+  const spot = nearestWalkable(node, want[0], want[1]) || want;
+  survivor += 1;
+  player = createPlayer(spot[0], spot[1]);
+  inv = inventory.createInventory();
+  for (const [id, count] of SURVIVOR_ITEMS) inventory.addItem(inv, id, count);
+  inventory.equip(inv, "bat");
+  combat.effects.length = 0;
+  gameOver = false;
+  death = null;
+  materializeNode();
+  hideOverlay();
+  loop.setPaused(false);
+  saveGame();
+  showMessage(`Survivor ${survivor}. Somewhere out there, the last one is still walking.`, 5);
+  updateHud(hudState());
+}
+
+// A former survivor drops everything it was carrying.
+function dropLoot(z) {
+  if (!z.loot || !z.loot.length) return;
+  const tile = [Math.round(z.gx), Math.round(z.gy)];
+  for (const it of z.loot) dropAt(it.id, it.count, tile);
+  z.loot = null;
+  showMessage("It drops everything you used to own.", 4);
 }
 
 function onPlayerHit({ damage }) {
@@ -536,6 +644,7 @@ function startGame() {
   events.on("meleeSwing", () => sfx.swing());
   events.on("meleeHit", () => sfx.hit());
   events.on("zombieDied", () => sfx.die());
+  events.on("zombieDied", ({ zombie }) => dropLoot(zombie));
   events.on("pickedUp", () => sfx.pickup());
   events.on("dryFire", () => sfx.dry());
   events.on("playerHit", () => sfx.hurt());
@@ -566,6 +675,8 @@ function startGame() {
   }
   materializeNode();
   gameOver = false;
+  death = null;
+  survivor = 1;
   updateHud(hudState());
 }
 
@@ -604,6 +715,7 @@ async function boot() {
     ...nodes.map((n) => assets.loadNodeSprites(n)),
     assets.loadSprite("player"),
     assets.loadSprite("zombie"),
+    assets.loadSprite("zombie_survivor"),
     assets.loadSprite("floor_door"),
     // Any item can end up on the floor, so every item sprite loads up front.
     ...items.map((def) => assets.loadSprite(`item_${def.id}`)),
@@ -647,6 +759,9 @@ async function boot() {
     // Save and start-screen hooks. Scripted tests call newGame() first.
     newGame,
     continueGame,
+    newSurvivor,
+    get survivor() { return survivor; },
+    get death() { return death; },
     saveGame,
     snapshot,
     applySnapshot,

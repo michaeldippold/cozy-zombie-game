@@ -6,6 +6,15 @@ Rulings follow the tiebreaker in `00-vision.md`: what best serves a cozy Habbo-s
 
 ## Decisions
 
+### 2026-09-17 — Death loses the character, not the world (Michael's ruling)
+
+- **You turn, and someone new arrives.** Michael: mostly protection against losing a good world, and watching your character go green and wander off is a fun system. This reverses "death deletes the save" from earlier the same day, which was my call. With decoration as a pillar, deleting the house on death punished the investment we want.
+- **Everyone turns, whatever killed them.** One rule. Starving at home still leaves something in the house.
+- **The former self carries the whole backpack and drops it when killed.** The first job of the next survivor writes itself.
+- **Later survivors start with a bat and a flashlight only**, so dying is never a way to mint a second pistol.
+- **The new survivor arrives in the quietest node that is not where you died**, interiors included. Waking up in a stranger's bedroom is on tone.
+- Only New world and New game delete a save now.
+
 ### 2026-09-17 — Moodles for slow needs (Michael's ruling)
 
 - **Slow needs are moodles, not bars.** Michael: they are a perfect pictorial way to show status, and hiding the exact number adds a hint of immersion, the same reason Zomboid hides it. This overrides my line in `16` that every need gets a visible bar, and it replaces the hunger bar from milestone 13.

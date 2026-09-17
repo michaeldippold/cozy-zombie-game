@@ -61,6 +61,8 @@ function copyRecord(r) {
     timer: r.timer || 0,
     hp: r.hp,
     aggro: !!r.aggro,
+    former: !!r.former,
+    loot: r.loot ? r.loot.map((i) => ({ ...i })) : null,
   };
 }
 
@@ -80,6 +82,8 @@ export function serialize(zombiesHere, nodeId) {
       timer: 0,
       hp: z.dead ? 0 : z.hp,
       aggro: !!z.aggro && !z.dead && z.state !== "die",
+      former: !!z.former,
+      loot: z.loot ? z.loot.map((i) => ({ ...i })) : null,
     });
   }
   return {
@@ -168,6 +172,8 @@ export function dematerialize(z, nodeId, exitRef) {
     timer: 0,
     hp: z.hp,
     aggro: z.aggro && !z.dead,
+    former: !!z.former,
+    loot: z.loot || null,
   };
   if (rec.aggro && exitRef) {
     rec.state = "moving";

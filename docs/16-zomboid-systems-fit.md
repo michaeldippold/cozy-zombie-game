@@ -118,7 +118,9 @@ Then replace Zomboid's entire mood loop (boredom, stress, unhappiness, and the p
 
 ~~Where we deliberately differ: Zomboid hides its numbers and we show ours.~~ Reversed by Michael the same day: slow needs are moodles (`17-moodles.md`), kept to a minimal set. Where "a thirst bar" or "one more bar" appears above, read "a moodle".
 
-## One open question: what death does to the house
+## ~~One open question~~ Settled: what death does to the house
+
+*Michael took this up the same day. Built as milestone 19; see `18-death-and-survivors.md`.*
 
 Milestone 17 shipped the simple rule, which was my choice and not Michael's: one life, and death deletes the save. Zomboid's actual rule is subtler. The *character* is gone; the *world* persists. You start a new survivor in the same world, your base is as you left it, and your old self is shambling around near where they died, carrying your things.
 

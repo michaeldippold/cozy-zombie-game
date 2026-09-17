@@ -18,15 +18,18 @@ export const ZOMBIE_COOLDOWN = 1.2; // seconds
 export const ZOMBIE_HP = 100;
 export const ZOMBIE_REPATH = 0.3; // seconds
 export const ZOMBIE_RADIUS = 0.3;
+const RISE_TIME = 1.2; // a former survivor getting back up (docs/18)
 const WANDER_IDLE_MIN = 1.5;
 const WANDER_IDLE_MAX = 4.0;
 const SEPARATION = 0.55;
 
 let nextId = 1;
 
-export function createZombie(gx, gy, { id = null, hp = ZOMBIE_HP, aggro = false, dead = false } = {}) {
+// `former` marks a turned survivor: it draws in the survivor's clothes and
+// carries `loot`, dropped when it dies. `rising` starts it on the floor.
+export function createZombie(gx, gy, { id = null, hp = ZOMBIE_HP, aggro = false, dead = false, former = false, loot = null, rising = false } = {}) {
   if (dead) {
-    const z = createZombie(gx, gy, { id, hp: 0 });
+    const z = createZombie(gx, gy, { id, hp: 0, former });
     z.dead = true;
     z.state = "die";
     playAnimation(z.anim, "die", true);
@@ -34,9 +37,12 @@ export function createZombie(gx, gy, { id = null, hp = ZOMBIE_HP, aggro = false,
     z.anim.done = true;
     return z;
   }
-  return {
+  const z = {
     kind: "zombie",
-    sprite: "zombie",
+    sprite: former ? "zombie_survivor" : "zombie",
+    former,
+    loot,
+    riseTimer: 0,
     id: id || `z${nextId++}`,
     gx,
     gy,
@@ -58,6 +64,14 @@ export function createZombie(gx, gy, { id = null, hp = ZOMBIE_HP, aggro = false,
     dead: false,
     knock: { x: 0, y: 0 },
   };
+  if (rising) {
+    z.state = "rise";
+    z.riseTimer = RISE_TIME;
+    playAnimation(z.anim, "die", true);
+    z.anim.frame = 3;
+    z.anim.done = true;
+  }
+  return z;
 }
 
 function distTo(z, e) {
@@ -73,6 +87,7 @@ function faceToward(z, dx, dy) {
 // Sight depends on how lit the player is (docs/12-lighting.md). A zombie
 // caught in the flashlight beam always sees the player.
 function canSee(z, node, player) {
+  if (player.dead) return false;
   if (inBeam(node, player, z.gx, z.gy)) return true;
   const light = lightAt(node, player.gx, player.gy, player);
   const range = ZOMBIE_SIGHT * (SIGHT_MIN_FRAC + (1 - SIGHT_MIN_FRAC) * light);
@@ -197,6 +212,17 @@ export function updateZombie(z, dt, node, player, others) {
   if (z.state === "die") {
     advanceAnimation(z.anim, sheet, dt);
     if (z.anim.done) z.dead = true;
+    return;
+  }
+
+  // Getting back up: the fall animation, backwards.
+  if (z.state === "rise") {
+    z.riseTimer -= dt;
+    z.anim.frame = Math.max(0, Math.min(3, Math.ceil((z.riseTimer / RISE_TIME) * 4) - 1));
+    if (z.riseTimer <= 0) {
+      z.state = "idle";
+      playAnimation(z.anim, "idle", true);
+    }
     return;
   }
 
