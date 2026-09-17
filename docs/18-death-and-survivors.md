@@ -40,7 +40,7 @@ Everyone turns, whatever killed them. One rule, and starving to death at home st
 - `data/sprites/zombie_survivor.json`: the zombie placeholder with the player's clothes and hair.
 - `entities/zombie.js`: `createZombie` takes `former`, `loot`, and `rising`. A `rise` state plays the fall animation backwards, then idles. `canSee` is false for a dead player.
 - `sim.js`: `former` and `loot` carried through `dematerialize`, `serialize`, and `restore`.
-- `main.js`: `die(cause)` replaces the old game-over gate; an afterlife update keeps the clock, the room's zombies, and the sim running while dead; `newSurvivor()`; loot drop on `zombieDied`.
+- `main.js`: `checkGameOver(cause)` now starts the death sequence instead of ending the game; an afterlife update keeps the clock, the room's zombies, and the sim running while dead; `newSurvivor()`; loot drop on `zombieDied`.
 - `ui/overlay.js`: death card with two buttons and the lighter backdrop.
 
 ## Acceptance
