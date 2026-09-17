@@ -58,8 +58,24 @@ export function generateWall(ph) {
   const fh = HH + h + T / 2;
   const variants = ["plain", "door", "window", "window_broken", "boarded", "door_boarded", "stairs", "cap"];
   const sides = ["north", "west"];
-  const { canvas, ctx } = makeCanvas(fw * variants.length, fh * sides.length);
+  // Near-edge stubs (south, east): low cutaway walls with their own small frames.
+  const nearVariants = ["plain", "door", "window", "window_broken", "boarded", "door_boarded", "stairs"];
+  const nearSides = ["south", "east"];
+  const nfw = HW;
+  const nfh = NEAR_FRAME_H + HH;
+  const { canvas, ctx } = makeCanvas(
+    Math.max(fw * variants.length, nfw * nearVariants.length),
+    fh * sides.length + nfh * nearSides.length,
+  );
   const frames = {};
+  nearSides.forEach((side, row) => {
+    nearVariants.forEach((variant, col) => {
+      const ox = col * nfw;
+      const oy = fh * sides.length + row * nfh;
+      drawNearVariant(ctx, ox, oy, side, variant, ph);
+      frames[`${side}_${variant}_0`] = [ox, oy, nfw, nfh];
+    });
+  });
   sides.forEach((side, row) => {
     variants.forEach((variant, col) => {
       const ox = col * fw;
@@ -75,10 +91,89 @@ export function generateWall(ph) {
     // Anchor is the tile's top vertex column for north, its left vertex column for west.
     anchor: [0, fh],
     anchorWest: [fw, fh],
+    anchorSouth: [HW, NEAR_FRAME_H],
+    anchorEast: [0, NEAR_FRAME_H],
+    wallHeight: h,
     animations: {},
     facings: [],
     mirror: {},
   };
+}
+
+// Near-edge stub: a low wall along a near edge of an interior. Doors are gaps,
+// windows are short frames standing on the stub.
+export const NEAR_STUB = 8; // px, height of the stub
+const NEAR_FRAME_H = 30; // px of headroom in a near frame, for window posts
+const NEAR_WINDOW_H = 26;
+
+function drawNearVariant(ctx, ox, oy, side, variant, ph) {
+  if (variant.startsWith("door") || variant === "stairs") return; // a gap
+  const color = ph.color;
+  // South edge runs from the left vertex to the bottom vertex of the tile;
+  // east edge from the bottom vertex to the right vertex.
+  const a = side === "south" ? [0, NEAR_FRAME_H] : [0, NEAR_FRAME_H + HH];
+  const b = side === "south" ? [HW, NEAR_FRAME_H + HH] : [HW, NEAR_FRAME_H];
+  const lerp = (t, y) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t - y];
+  ctx.save();
+  ctx.translate(ox, oy);
+  ctx.fillStyle = shade(color, side === "south" ? 0.62 : 0.5);
+  poly(ctx, [a, b, [b[0], b[1] - NEAR_STUB], [a[0], a[1] - NEAR_STUB]]);
+  ctx.fill();
+  ctx.strokeStyle = shade(color, 1.1);
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(a[0], a[1] - NEAR_STUB);
+  ctx.lineTo(b[0], b[1] - NEAR_STUB);
+  ctx.stroke();
+
+  if (variant.startsWith("window") || variant === "boarded") {
+    const t0 = 0.2;
+    const t1 = 0.8;
+    if (variant !== "window_broken") {
+      ctx.fillStyle = "rgba(158, 200, 224, 0.38)";
+      poly(ctx, [lerp(t0, NEAR_STUB), lerp(t1, NEAR_STUB), lerp(t1, NEAR_WINDOW_H), lerp(t0, NEAR_WINDOW_H)]);
+      ctx.fill();
+    } else {
+      ctx.strokeStyle = "#cfe6f0";
+      ctx.lineWidth = 1;
+      const s0 = lerp(t0 + 0.05, NEAR_STUB);
+      const s1 = lerp(t0 + 0.18, NEAR_STUB + 9);
+      const s2 = lerp(t1 - 0.05, NEAR_STUB);
+      const s3 = lerp(t1 - 0.2, NEAR_STUB + 7);
+      ctx.beginPath();
+      ctx.moveTo(s0[0], s0[1]);
+      ctx.lineTo(s1[0], s1[1]);
+      ctx.moveTo(s2[0], s2[1]);
+      ctx.lineTo(s3[0], s3[1]);
+      ctx.stroke();
+    }
+    // Frame: two posts and a top bar.
+    ctx.strokeStyle = shade(color, 0.45);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    const p0 = lerp(t0, NEAR_STUB);
+    const p1 = lerp(t0, NEAR_WINDOW_H);
+    const p2 = lerp(t1, NEAR_WINDOW_H);
+    const p3 = lerp(t1, NEAR_STUB);
+    ctx.moveTo(p0[0], p0[1]);
+    ctx.lineTo(p1[0], p1[1]);
+    ctx.lineTo(p2[0], p2[1]);
+    ctx.lineTo(p3[0], p3[1]);
+    ctx.stroke();
+    if (variant === "boarded") {
+      ctx.strokeStyle = "#8a6a3a";
+      ctx.lineWidth = 4;
+      for (const yy of [NEAR_STUB + 4, NEAR_STUB + 11, NEAR_STUB + 18]) {
+        const q0 = lerp(t0 - 0.06, yy);
+        const q1 = lerp(t1 + 0.06, yy);
+        ctx.beginPath();
+        ctx.moveTo(q0[0], q0[1]);
+        ctx.lineTo(q1[0], q1[1]);
+        ctx.stroke();
+      }
+    }
+  }
+  ctx.restore();
 }
 
 function drawWallVariant(ctx, ox, oy, side, variant, ph, T) {

@@ -154,6 +154,25 @@ function edgeActions(ref, node, inv, player) {
   return out;
 }
 
+// The light switch: a simple action so E reaches it, since finding it matters.
+function switchActions(node) {
+  if (!node.switch) return [];
+  return [{
+    kind: "switch",
+    simple: true,
+    label: node.lightsOn ? "Turn lights off" : "Turn lights on",
+    tiles: [node.switch.tile],
+    range: INTERACT_RANGE,
+    duration: 0,
+    enabled: true,
+    perform() {
+      node.lightsOn = !node.lightsOn;
+      emit("lightsToggled", { node });
+      return true;
+    },
+  }];
+}
+
 function walkAction(tile) {
   return {
     kind: "floor",
@@ -224,6 +243,8 @@ export function actionsAt(sx, sy, player, node, inv) {
     if (onTile || onWall) out.push(...edgeActions(ref, node, inv, player));
   }
 
+  if (node.switch && sameTile(node.switch.tile)) out.push(...switchActions(node));
+
   if (!out.length && inBounds(node, tx, ty) && isWalkable(node, tx, ty)) out.push(walkAction([tx, ty]));
   return out;
 }
@@ -244,6 +265,7 @@ export function nearestSimpleAction(player, node, inv) {
   };
   for (const it of node.items) consider(itemActions(it, node, inv));
   for (const prop of node.props) if (prop.container) consider(containerActions(prop));
+  consider(switchActions(node));
   return best;
 }
 

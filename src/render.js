@@ -5,6 +5,8 @@ import { getSheet } from "./assets.js";
 import { drawFrame, drawCharacter, resolveFacing, frameName, frameRect } from "./sprites.js";
 import { poly } from "./render-util.js";
 import { wallSpriteAt } from "./node.js";
+import { getItem } from "./items.js";
+import { NEAR_STUB } from "./placeholders.js";
 import * as clock from "./clock.js";
 import * as light from "./light.js";
 import { aimOrigin } from "./entities/player.js";
@@ -72,21 +74,6 @@ function isBehindWalls(node, e) {
 
 // Wall segment variant for a tile position. Edges (doors, windows) override
 // "plain" once the world is loaded; wallVariantAt is supplied by the caller.
-// A soft warm glow over an intact window at night. Per docs/00-vision.md,
-// this is the same light the sim uses to pull zombies toward the player's
-// own node; the player sees the cause, not the number. Purely decorative —
-// the actual visibility effect is the light-punch in drawNightOverlay below.
-function drawWindowGlow(ctx, cx, cy) {
-  const n = clock.nightFactor();
-  if (n <= 0.02) return;
-  const gy = cy - 38; // roughly the glass center above the tile anchor
-  const grad = ctx.createRadialGradient(cx, gy, 0, cx, gy, 20);
-  grad.addColorStop(0, `rgba(255, 214, 140, ${0.55 * n})`);
-  grad.addColorStop(1, "rgba(255, 214, 140, 0)");
-  ctx.fillStyle = grad;
-  ctx.fillRect(cx - 20, gy - 20, 40, 40);
-}
-
 // Floor lighting comes from the light map (light.js). These screen-space pools
 // remain only for what the floor map cannot cover: the wall face around a lit
 // window, and the anchor point for the warm glow of a lamp.
@@ -118,7 +105,7 @@ const LAMP_GLOW_ALPHA = 0.22;
 // Props with these sprite ids act as light sources after dark.
 const LIGHT_PROP_SPRITES = new Set(["lamp"]);
 
-function drawWalls(ctx, node, wallVariantAt, lightSources) {
+function drawWalls(ctx, node, wallVariantAt) {
   // West wall, far to near. Each segment may use its own sprite.
   let lastWest = null;
   for (let gy = node.height - 1; gy >= 0; gy--) {
@@ -128,10 +115,6 @@ function drawWalls(ctx, node, wallVariantAt, lightSources) {
     const p = iso.toScreen(0, gy);
     const variant = wallVariantAt(node, 0, gy, "west");
     drawFrame(ctx, sheet, `west_${variant}_0`, Math.round(p.x), Math.round(p.y), false, sheet.anchorWest);
-    if (variant === "window") {
-      drawWindowGlow(ctx, Math.round(p.x), Math.round(p.y));
-      lightSources.push({ x: Math.round(p.x), y: Math.round(p.y) - 38, radius: WINDOW_LIGHT_RADIUS });
-    }
     if (gy === node.height - 1) lastWest = sheet;
   }
   if (lastWest) {
@@ -146,10 +129,6 @@ function drawWalls(ctx, node, wallVariantAt, lightSources) {
     const p = iso.toScreen(gx, 0);
     const variant = wallVariantAt(node, gx, 0, "north");
     drawFrame(ctx, sheet, `north_${variant}_0`, Math.round(p.x), Math.round(p.y), false, sheet.anchor);
-    if (variant === "window") {
-      drawWindowGlow(ctx, Math.round(p.x), Math.round(p.y));
-      lightSources.push({ x: Math.round(p.x), y: Math.round(p.y) - 38, radius: WINDOW_LIGHT_RADIUS });
-    }
     if (gx === node.width - 1) lastNorth = sheet;
   }
   if (lastNorth) {
@@ -179,8 +158,7 @@ let nightCanvas = null;
 let nightCtx = null;
 
 function drawNightOverlay(ctx, node, lightSources, player) {
-  if (!node.outdoor) return;
-  const n = clock.nightFactor();
+  const n = light.darknessOf(node);
   if (n <= 0.01) return;
   const w = ctx.canvas.width;
   const h = ctx.canvas.height;
@@ -261,6 +239,8 @@ function drawNightOverlay(ctx, node, lightSources, player) {
     for (const p of pts) beamRadius = Math.max(beamRadius, Math.hypot(p.x - beamOrigin.x, p.y - beamOrigin.y));
     beamRadius = Math.max(1, beamRadius);
     nightCtx.save();
+    floorPath(nightCtx, node);
+    nightCtx.clip();
     poly(nightCtx, beamPoly);
     nightCtx.clip();
     const grad = nightCtx.createRadialGradient(beamOrigin.x, beamOrigin.y, 0, beamOrigin.x, beamOrigin.y, beamRadius);
@@ -279,6 +259,8 @@ function drawNightOverlay(ctx, node, lightSources, player) {
 
   if (beamPoly) {
     ctx.save();
+    floorPath(ctx, node);
+    ctx.clip();
     poly(ctx, beamPoly);
     ctx.clip();
     const grad = ctx.createRadialGradient(beamOrigin.x, beamOrigin.y, 0, beamOrigin.x, beamOrigin.y, beamRadius);
@@ -362,6 +344,16 @@ function computeOcclusion(drawables) {
       }
     }
   }
+}
+
+// The floor diamond of a node in screen space (with the slab), as a path.
+// Light drawn on the ground is clipped to it so nothing lights the void.
+function floorPath(c, node) {
+  const c0 = iso.toScreen(-0.5, -0.5);
+  const c1 = iso.toScreen(node.width - 0.5, -0.5);
+  const c2 = iso.toScreen(node.width - 0.5, node.height - 0.5);
+  const c3 = iso.toScreen(-0.5, node.height - 0.5);
+  poly(c, [[c0.x, c0.y], [c1.x, c1.y], [c2.x, c2.y + SLAB], [c3.x, c3.y + SLAB]]);
 }
 
 // Offscreen canvas for tinted silhouettes.
@@ -457,10 +449,101 @@ function entityDrawables(entities, out, node, player) {
   }
 }
 
+// Near-edge stub walls (interiors only): low cutaway walls along the south and
+// east edges. Doors are gaps, windows are short frames. Drawn right after the
+// floor so they never hide anything. See docs/13-indoor-light.md.
+function drawNearWalls(ctx, node, wallVariantAt) {
+  for (let gy = 0; gy < node.height; gy++) {
+    const id = wallSpriteAt(node, "east", gy);
+    if (!id) continue;
+    const sheet = getSheet(id);
+    if (!sheet.anchorEast) continue;
+    const p = iso.toScreen(node.width - 1, gy);
+    const variant = wallVariantAt(node, node.width - 1, gy, "east");
+    drawFrame(ctx, sheet, `east_${variant}_0`, Math.round(p.x), Math.round(p.y), false, sheet.anchorEast);
+  }
+  for (let gx = 0; gx < node.width; gx++) {
+    const id = wallSpriteAt(node, "south", gx);
+    if (!id) continue;
+    const sheet = getSheet(id);
+    if (!sheet.anchorSouth) continue;
+    const p = iso.toScreen(gx, node.height - 1);
+    const variant = wallVariantAt(node, gx, node.height - 1, "south");
+    drawFrame(ctx, sheet, `south_${variant}_0`, Math.round(p.x), Math.round(p.y), false, sheet.anchorSouth);
+  }
+}
+
+// A window glows only if the room behind it is lit: a lit pane drawn over the
+// darkness. The light it casts on the ground comes from the light map.
+function drawLitPanes(ctx, node) {
+  const n = clock.nightFactor();
+  if (n <= 0.02 || !node.outdoor) return;
+  for (const src of light.staticLights(node)) {
+    if (src.kind !== "window" || src.broken) continue;
+    const idx = src.wall === "west" ? src.gy : src.gx;
+    const id = wallSpriteAt(node, src.wall, idx);
+    if (!id) continue;
+    const h = getSheet(id).wallHeight || 72;
+    const c = iso.toScreen(src.gx, src.gy);
+    const cx = Math.round(c.x);
+    const cy = Math.round(c.y);
+    const a = src.wall === "north" ? [cx, cy - iso.HH] : [cx - iso.HW, cy];
+    const b = src.wall === "north" ? [cx + iso.HW, cy] : [cx, cy - iso.HH];
+    const lerp = (t, y) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t - y];
+    ctx.fillStyle = `rgba(255, 214, 140, ${0.85 * n})`;
+    poly(ctx, [lerp(0.27, h * 0.37), lerp(0.73, h * 0.37), lerp(0.73, h * 0.78), lerp(0.27, h * 0.78)]);
+    ctx.fill();
+  }
+}
+
+// The light switch: a small plate on the near stub beside the entrance, with an
+// LED drawn over the darkness. Orange when the room is off, green when on.
+function drawSwitch(ctx, node) {
+  if (!node.switch) return;
+  const [tx, ty] = node.switch.tile;
+  const c = iso.toScreen(tx, ty);
+  const mx = Math.round(c.x + (node.switch.wall === "east" ? iso.HW / 2 : -iso.HW / 2));
+  const my = Math.round(c.y + iso.HH / 2) - NEAR_STUB;
+  ctx.fillStyle = "#d8d4c8";
+  ctx.fillRect(mx - 3, my - 10, 6, 9);
+  ctx.strokeStyle = "#4a463e";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(mx - 3.5, my - 10.5, 7, 10);
+  const on = node.lightsOn;
+  const led = on ? "#7adf7a" : "#ffb040";
+  if (!on && light.darknessOf(node) > 0.2) {
+    const g = ctx.createRadialGradient(mx, my - 7, 0, mx, my - 7, 9);
+    g.addColorStop(0, "rgba(255, 176, 64, 0.55)");
+    g.addColorStop(1, "rgba(255, 176, 64, 0)");
+    ctx.fillStyle = g;
+    ctx.fillRect(mx - 9, my - 16, 18, 18);
+  }
+  ctx.fillStyle = led;
+  ctx.fillRect(mx - 1, my - 8, 2, 2);
+}
+
+// A placed candle shows its flame over the darkness.
+function drawCandleFlames(ctx, node) {
+  for (const it of node.items) {
+    if (!getItem(it.item).light) continue;
+    const p = iso.toScreen(it.tile[0], it.tile[1]);
+    const x = Math.round(p.x);
+    const y = Math.round(p.y) - 11;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, 10);
+    g.addColorStop(0, "rgba(255, 220, 140, 0.7)");
+    g.addColorStop(1, "rgba(255, 220, 140, 0)");
+    ctx.fillStyle = g;
+    ctx.fillRect(x - 10, y - 10, 20, 20);
+    ctx.fillStyle = "#fff2b0";
+    ctx.fillRect(x - 1, y - 2, 2, 3);
+  }
+}
+
 const plainVariant = () => "plain";
 
 export function renderNode(ctx, node, entities, { wallVariantAt = plainVariant, debug = null, player = null } = {}) {
   drawFloor(ctx, node);
+  drawNearWalls(ctx, node, wallVariantAt);
   const drawables = [];
   propDrawables(node, drawables);
   itemDrawables(node, drawables);
@@ -475,7 +558,7 @@ export function renderNode(ctx, node, entities, { wallVariantAt = plainVariant, 
     }
   }
   const lightSources = [];
-  drawWalls(ctx, node, wallVariantAt, lightSources);
+  drawWalls(ctx, node, wallVariantAt);
   collectPropLights(node, lightSources);
   for (const d of drawables) {
     if (d.drawn) continue;
@@ -489,5 +572,8 @@ export function renderNode(ctx, node, entities, { wallVariantAt = plainVariant, 
   }
   for (const d of drawables) if (d.occluded && d.revealable !== false) drawSilhouette(ctx, d);
   drawNightOverlay(ctx, node, lightSources, player);
+  drawLitPanes(ctx, node);
+  drawCandleFlames(ctx, node);
+  drawSwitch(ctx, node);
   if (debug) debug(ctx, drawables);
 }

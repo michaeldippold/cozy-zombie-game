@@ -7,9 +7,10 @@ import * as iso from "./iso.js";
 import * as clock from "./clock.js";
 import { blocksShot } from "./node.js";
 import { lineOfSight } from "./pathfind.js";
-import { wallVariantAt } from "./world.js";
+import * as world from "./world.js";
+import { getItem } from "./items.js";
 
-export const LAMP_RADIUS = 4.5; // tiles
+export const LAMP_RADIUS = 3.0; // tiles
 export const WINDOW_RADIUS = 3.0; // tiles
 export const MAP_RES = 2; // light cells per tile, so shadow edges are soft
 export const MAP_PAD = MAP_RES; // one tile of replicated border for clean filtering
@@ -19,22 +20,46 @@ export const LIGHT_PROP_SPRITES = new Set(["lamp"]);
 export const BEAM_RAYS = 28;
 const BEAM_STEP = 0.15; // tiles per march step
 
+// Outdoors the clock rules. Indoors the room lights do, and with them off the
+// room follows the clock too: bright by day, dark at night.
 export function ambientLight(node) {
-  return node.outdoor ? clock.getBrightness() : 1;
+  if (!node.outdoor && node.lightsOn) return 1;
+  return clock.getBrightness();
 }
 
-// Static light sources of a node in grid space: [{ gx, gy, radius, kind }].
+// How much night the renderer should draw for a node, 0..1.
+export function darknessOf(node) {
+  if (!node.outdoor && node.lightsOn) return 0;
+  return clock.nightFactor();
+}
+
+// Static light sources of a node in grid space: [{ gx, gy, radius, kind, ... }].
+// Outdoors: lamp posts, and windows whose room behind them has its lights on.
+// Indoors: candles standing on the floor. Room lights are ambient, not a source,
+// and candles never light a window (docs/13-indoor-light.md).
 export function staticLights(node) {
   const out = [];
-  for (const prop of node.props) {
-    if (!LIGHT_PROP_SPRITES.has(prop.sprite)) continue;
-    out.push({ gx: prop.tile[0], gy: prop.tile[1], radius: LAMP_RADIUS, kind: "lamp" });
-  }
-  for (let gx = 0; gx < node.width; gx++) {
-    if (wallVariantAt(node, gx, 0, "north") === "window") out.push({ gx, gy: 0, radius: WINDOW_RADIUS, kind: "window" });
-  }
-  for (let gy = 0; gy < node.height; gy++) {
-    if (wallVariantAt(node, 0, gy, "west") === "window") out.push({ gx: 0, gy, radius: WINDOW_RADIUS, kind: "window" });
+  if (node.outdoor) {
+    for (const prop of node.props) {
+      if (!LIGHT_PROP_SPRITES.has(prop.sprite)) continue;
+      out.push({ gx: prop.tile[0], gy: prop.tile[1], radius: LAMP_RADIUS, kind: "lamp" });
+    }
+    const consider = (gx, gy, side) => {
+      const variant = world.wallVariantAt(node, gx, gy, side);
+      if (variant !== "window" && variant !== "window_broken") return;
+      const ref = world.edgeAtTile(node.id, gx, gy);
+      if (!ref || ref.wall !== side) return; // decorative: no room behind it
+      const room = world.getNode(ref.edge[ref.edge.inside].node);
+      if (room.outdoor || !room.lightsOn) return;
+      out.push({ gx, gy, radius: WINDOW_RADIUS, kind: "window", wall: side, broken: variant === "window_broken" });
+    };
+    for (let gx = 0; gx < node.width; gx++) consider(gx, 0, "north");
+    for (let gy = 0; gy < node.height; gy++) consider(0, gy, "west");
+  } else {
+    for (const it of node.items) {
+      const def = getItem(it.item);
+      if (def.light) out.push({ gx: it.tile[0], gy: it.tile[1], radius: def.light.radius, kind: "candle" });
+    }
   }
   return out;
 }
@@ -173,7 +198,6 @@ function buildStatic(node, sig) {
 
 // Validate (and rebuild if needed) the static map of a node. Cheap when unchanged.
 export function getStatic(node) {
-  if (!node.outdoor) return null;
   const sig = lightSignature(node);
   let entry = staticCache.get(node.id);
   if (!entry || entry.sig !== sig) {
@@ -218,8 +242,9 @@ export function getRenderLayer(node) {
 
 // Light level at a grid position, 0..1: ambient + static map + flashlight.
 export function lightAt(node, gx, gy, player = null) {
-  if (!node.outdoor) return 1;
-  let l = clock.getBrightness() + staticContribAt(node, gx, gy);
+  let l = ambientLight(node);
+  if (l >= 1) return 1;
+  l += staticContribAt(node, gx, gy);
   if (beamOf(player)) {
     if (Math.hypot(gx - player.gx, gy - player.gy) < 0.6) l += FLASHLIGHT_SELF_LIGHT;
     else if (inBeam(node, player, gx, gy)) l += 1;

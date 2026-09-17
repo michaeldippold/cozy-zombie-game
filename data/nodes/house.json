@@ -1,39 +1,214 @@
 {
   "id": "house",
   "name": "House",
-  "size": [10, 10],
+  "size": [
+    10,
+    10
+  ],
   "floor": "floor_wood",
   "floorOverrides": [
-    { "tile": [5, 5], "sprite": "floor_rug" },
-    { "tile": [6, 5], "sprite": "floor_rug" },
-    { "tile": [5, 6], "sprite": "floor_rug" },
-    { "tile": [6, 6], "sprite": "floor_rug" }
+    {
+      "tile": [
+        5,
+        5
+      ],
+      "sprite": "floor_rug"
+    },
+    {
+      "tile": [
+        6,
+        5
+      ],
+      "sprite": "floor_rug"
+    },
+    {
+      "tile": [
+        5,
+        6
+      ],
+      "sprite": "floor_rug"
+    },
+    {
+      "tile": [
+        6,
+        6
+      ],
+      "sprite": "floor_rug"
+    }
   ],
   "walls": {
     "north": "wall_plain",
-    "west": "wall_plain"
+    "west": "wall_plain",
+    "south": "wall_plain",
+    "east": "wall_plain"
   },
   "props": [
-    { "id": "fridge",  "sprite": "fridge",  "tile": [0, 2], "footprint": [1, 1], "solid": true, "blocksShots": true,  "container": "fridge" },
-    { "id": "cabinet", "sprite": "cabinet", "tile": [5, 0], "footprint": [2, 1], "solid": true, "blocksShots": true,  "container": "cabinet" },
-    { "id": "dresser", "sprite": "dresser", "tile": [0, 7], "footprint": [1, 2], "solid": true, "blocksShots": true,  "container": "dresser" },
-    { "id": "table",   "sprite": "table",   "tile": [3, 4], "footprint": [2, 2], "solid": true, "blocksShots": false },
-    { "id": "chair-1", "sprite": "chair",   "tile": [2, 4], "footprint": [1, 1], "solid": true, "blocksShots": false },
-    { "id": "chair-2", "sprite": "chair",   "tile": [5, 5], "footprint": [1, 1], "solid": true, "blocksShots": false },
-    { "id": "sofa",    "sprite": "sofa",    "tile": [3, 8], "footprint": [3, 1], "solid": true, "blocksShots": false },
-    { "id": "plant",   "sprite": "plant",   "tile": [9, 9], "footprint": [1, 1], "solid": true, "blocksShots": true },
-    { "id": "lamp",    "sprite": "lamp",    "tile": [9, 3], "footprint": [1, 1], "solid": true, "blocksShots": false }
+    {
+      "id": "fridge",
+      "sprite": "fridge",
+      "tile": [
+        0,
+        2
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "solid": true,
+      "blocksShots": true,
+      "container": "fridge"
+    },
+    {
+      "id": "cabinet",
+      "sprite": "cabinet",
+      "tile": [
+        5,
+        0
+      ],
+      "footprint": [
+        2,
+        1
+      ],
+      "solid": true,
+      "blocksShots": true,
+      "container": "cabinet"
+    },
+    {
+      "id": "dresser",
+      "sprite": "dresser",
+      "tile": [
+        0,
+        7
+      ],
+      "footprint": [
+        1,
+        2
+      ],
+      "solid": true,
+      "blocksShots": true,
+      "container": "dresser"
+    },
+    {
+      "id": "table",
+      "sprite": "table",
+      "tile": [
+        3,
+        4
+      ],
+      "footprint": [
+        2,
+        2
+      ],
+      "solid": true,
+      "blocksShots": false
+    },
+    {
+      "id": "chair-1",
+      "sprite": "chair",
+      "tile": [
+        2,
+        4
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "solid": true,
+      "blocksShots": false
+    },
+    {
+      "id": "chair-2",
+      "sprite": "chair",
+      "tile": [
+        5,
+        5
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "solid": true,
+      "blocksShots": false
+    },
+    {
+      "id": "sofa",
+      "sprite": "sofa",
+      "tile": [
+        3,
+        8
+      ],
+      "footprint": [
+        3,
+        1
+      ],
+      "solid": true,
+      "blocksShots": false
+    },
+    {
+      "id": "plant",
+      "sprite": "plant",
+      "tile": [
+        0,
+        9
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "solid": true,
+      "blocksShots": true
+    },
+    {
+      "id": "lamp",
+      "sprite": "lamp",
+      "tile": [
+        9,
+        3
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "solid": true,
+      "blocksShots": false
+    }
   ],
   "edges": [
-    { "edge": "house-door", "side": "a" },
-    { "edge": "house-window-1", "side": "a" },
-    { "edge": "house-window-2", "side": "a" }
+    {
+      "edge": "house-door",
+      "side": "a"
+    },
+    {
+      "edge": "house-window-1",
+      "side": "a"
+    },
+    {
+      "edge": "house-window-2",
+      "side": "a"
+    }
   ],
   "spawns": {
-    "player": [6, 7],
+    "player": [
+      6,
+      7
+    ],
     "zombies": []
   },
   "items": [
-    { "item": "plank", "tile": [7, 3] }
-  ]
+    {
+      "item": "plank",
+      "tile": [
+        7,
+        3
+      ]
+    }
+  ],
+  "lightsOn": true,
+  "switch": {
+    "tile": [
+      6,
+      9
+    ],
+    "wall": "south"
+  }
 }

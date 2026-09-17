@@ -1,33 +1,152 @@
 {
   "id": "house2-ground",
   "name": "Blue House, downstairs",
-  "size": [10, 8],
+  "size": [
+    10,
+    8
+  ],
   "floor": "floor_wood",
   "floorRects": [
-    { "rect": [4, 3, 3, 2], "sprite": "floor_rug" }
+    {
+      "rect": [
+        4,
+        3,
+        3,
+        2
+      ],
+      "sprite": "floor_rug"
+    }
   ],
   "walls": {
     "north": "wall_plain",
-    "west": "wall_plain"
+    "west": "wall_plain",
+    "south": "wall_plain",
+    "east": "wall_plain"
   },
   "props": [
-    { "id": "cabinet", "sprite": "cabinet", "tile": [1, 0], "footprint": [2, 1], "solid": true, "blocksShots": true, "container": "cabinet" },
-    { "id": "fridge",  "sprite": "fridge",  "tile": [0, 5], "footprint": [1, 1], "solid": true, "blocksShots": true, "container": "fridge" },
-    { "id": "table",   "sprite": "table",   "tile": [3, 5], "footprint": [1, 1], "solid": true, "blocksShots": false },
-    { "id": "chair-1", "sprite": "chair",   "tile": [2, 5], "footprint": [1, 1], "solid": true, "blocksShots": false },
-    { "id": "bed",     "sprite": "bed",     "tile": [6, 6], "footprint": [2, 1], "solid": true, "blocksShots": false },
-    { "id": "plant",   "sprite": "plant",   "tile": [9, 7], "footprint": [1, 1], "solid": true, "blocksShots": true }
+    {
+      "id": "cabinet",
+      "sprite": "cabinet",
+      "tile": [
+        1,
+        0
+      ],
+      "footprint": [
+        2,
+        1
+      ],
+      "solid": true,
+      "blocksShots": true,
+      "container": "cabinet"
+    },
+    {
+      "id": "fridge",
+      "sprite": "fridge",
+      "tile": [
+        0,
+        5
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "solid": true,
+      "blocksShots": true,
+      "container": "fridge"
+    },
+    {
+      "id": "table",
+      "sprite": "table",
+      "tile": [
+        3,
+        5
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "solid": true,
+      "blocksShots": false
+    },
+    {
+      "id": "chair-1",
+      "sprite": "chair",
+      "tile": [
+        2,
+        5
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "solid": true,
+      "blocksShots": false
+    },
+    {
+      "id": "bed",
+      "sprite": "bed",
+      "tile": [
+        6,
+        6
+      ],
+      "footprint": [
+        2,
+        1
+      ],
+      "solid": true,
+      "blocksShots": false
+    },
+    {
+      "id": "plant",
+      "sprite": "plant",
+      "tile": [
+        9,
+        7
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "solid": true,
+      "blocksShots": true
+    }
   ],
   "edges": [
-    { "edge": "house2-door", "side": "a" },
-    { "edge": "house2-window", "side": "a" },
-    { "edge": "house2-stairs", "side": "a" }
+    {
+      "edge": "house2-door",
+      "side": "a"
+    },
+    {
+      "edge": "house2-window",
+      "side": "a"
+    },
+    {
+      "edge": "house2-stairs",
+      "side": "a"
+    }
   ],
   "spawns": {
-    "player": [5, 4],
+    "player": [
+      5,
+      4
+    ],
     "zombies": []
   },
   "items": [
-    { "item": "plank", "tile": [8, 6] }
-  ]
+    {
+      "item": "plank",
+      "tile": [
+        8,
+        6
+      ]
+    }
+  ],
+  "lightsOn": false,
+  "switch": {
+    "tile": [
+      9,
+      2
+    ],
+    "wall": "east"
+  }
 }

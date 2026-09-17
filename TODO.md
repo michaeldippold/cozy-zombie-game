@@ -4,8 +4,9 @@ Working checklist. A new session should read `CLAUDE.md`, then this file, then t
 
 ## Status
 
-- **Current milestone:** 15 (Per-tile light map with shadows) complete (2026-09-17). Lighting arc done: day/night, moonlit dark tuned by eye, player night vision, flashlight, light-aware zombies, shadows. Seven-node neighbourhood from milestone 12, hunger, day/night, and a real light-punch darkness system.
-- **Last completed task (2026-09-17):** Milestone 15. Static light is a cached per-node map (2 cells per tile, line-of-sight shadows), drawn through the iso transform as the night layer's erase image; the flashlight stays exact at query time. Verified: shadow behind the yard tree (0.10 vs 0.34 in the open), a player in that shadow ignored at 4.8 tiles while one step into the lamp pool gets chased, a boarded window goes dark and stops pulling the sim, sub-millisecond costs. Night level locked at tint rgb(30,35,82) @ 0.96, explicitly revisitable. Dev aids: `]` skips an hour, `__game.setHour(h)`, `__game.setNightTint(tint, alpha)`, POST `/__screenshot/<name>.png` saves into `screenshots/`.
+- **Current milestone:** 16 (Indoor light and coherent windows) complete (2026-09-17). Before it, 15 (light map with shadows). Lighting arc done: day/night, moonlit dark tuned by eye, player night vision, flashlight, light-aware zombies, shadows. Seven-node neighbourhood from milestone 12, hunger, day/night, and a real light-punch darkness system.
+- **Last completed task (2026-09-17):** Milestone 16. Openings now sit on the same edge inside and out (house windows on its south edge with the door; blue house window on its east edge), on new low cutaway stub walls along interior near edges. Room lights are a per-interior boolean flipped at a switch beside the entrance with an always-visible LED; lit rooms light their windows and cast real light outside, dark rooms need the flashlight or placed candles, which never light windows. Street lamps reach 3 tiles. Verified by script: coherent tiles and order, board-inside-shows-outside, E toggles, window tiles outside 1 lit and 0 dark, candle lights indoors with yard tiles still 0, break-ins arrive at (2,9) and the door pad. Parked at Michael's request: flashlight battery, candle burn time.
+- **Before that (2026-09-17):** Milestone 15. Static light is a cached per-node map (2 cells per tile, line-of-sight shadows), drawn through the iso transform as the night layer's erase image; the flashlight stays exact at query time. Verified: shadow behind the yard tree (0.10 vs 0.34 in the open), a player in that shadow ignored at 4.8 tiles while one step into the lamp pool gets chased, a boarded window goes dark and stops pulling the sim, sub-millisecond costs. Night level locked at tint rgb(30,35,82) @ 0.96, explicitly revisitable. Dev aids: `]` skips an hour, `__game.setHour(h)`, `__game.setNightTint(tint, alpha)`, POST `/__screenshot/<name>.png` saves into `screenshots/`.
 - **Earlier (2026-09-17):** Night retuned so the flashlight is needed: darker far tint (35–60% brightness, never black) plus a subtle personal visibility pool around the player; hiding zombies in the dark was proposed and rejected (reads as spawning). Michael wants this settled before milestone 15.
 - **Before that (2026-09-17):** Milestone 14, scripted acceptance in the yard at 01:00: an unlit player is unseen at 4 tiles and seen at the same distance by day; under a lamp at night a zombie 5 tiles away notices; the flashlight beam on a zombie 5 tiles away aggros it while one just outside the arc stays idle; the beam and sight both stop at a tree; the yard's alarm rises while the torch is on at night and not by day; F toggles, dropping the last flashlight switches it off, HUD shows the state. `src/light.js` is the single light function every reader uses; milestone 15 replaces its inside.
 - **Earlier (2026-09-17):** Michael found the light-punch night too dark between lights. Night is now a blue moonlight tint composited with multiply (everything stays readable), with wider, softer lit pools and a warm glow at lamps. Verified in yard and street at 01:00. Open design question from Michael: a flashlight item casting a beam; see the decision log and the per-tile light map option in `docs/11`.
@@ -117,6 +118,17 @@ Milestone acceptance criteria live in [docs/08-milestones.md](docs/08-milestones
 - [x] Occluders draw at alpha 0.4.
 - [x] Silhouette pass via an offscreen canvas with `source-in`.
 - [x] Verify acceptance in the yard behind trees with player and a zombie together.
+
+## Milestone 16 — Indoor light and coherent windows (see docs/13-indoor-light.md)
+
+- [x] Near-edge stub walls for interiors (`placeholders.js` near variants, `render.js` `drawNearWalls`, `node.js` loads `walls.south/east`).
+- [x] Coherence: house windows to the south edge, blue house window to the east edge, shop decor windows to the south stub (`edges.json`, node JSON).
+- [x] Room lights: `lightsOn`, `switch`, switch action (E and menu), LED drawn over the darkness.
+- [x] `light.js`: ambient by room lights, windows lit only when the room behind is lit, candles as indoor static sources, `darknessOf`.
+- [x] Renderer: night layer indoors when dark, lit panes, candle flames, fake window glow removed, beam clipped to the floor.
+- [x] Candle item, loot entries, starting kit.
+- [x] Street lamp radius 3.
+- [x] Verify acceptance in docs/13 (scripted, passed 2026-09-17).
 
 ## Milestone 15 — Per-tile light map with shadows (see docs/12-lighting.md)
 

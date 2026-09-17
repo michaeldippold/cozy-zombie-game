@@ -14,7 +14,15 @@ export function loadNode(json) {
   for (const o of json.floorOverrides || []) {
     node.floorOverrides.set(`${o.tile[0]},${o.tile[1]}`, o.sprite);
   }
-  node.walls = { north: json.walls?.north || null, west: json.walls?.west || null };
+  node.walls = {
+    north: json.walls?.north || null,
+    west: json.walls?.west || null,
+    // Near edges: low cutaway stubs, interiors only. See docs/13-indoor-light.md.
+    south: json.walls?.south || null,
+    east: json.walls?.east || null,
+  };
+  node.lightsOn = !!json.lightsOn;
+  node.switch = json.switch ? { tile: [...json.switch.tile], wall: json.switch.wall || "south" } : null;
   node.wallDecor = json.wallDecor || [];
   node.outdoor = !!json.outdoor;
   node.zombieCap = json.zombieCap || 0;
@@ -66,7 +74,9 @@ export function createNode({ id = "node", name = "", width, height }) {
     thresholds: new Map(), // "gx,gy" -> edge ref, for door tiles outside the grid
     floor: "floor",
     floorOverrides: new Map(),
-    walls: { north: null, west: null },
+    walls: { north: null, west: null, south: null, east: null },
+    lightsOn: false,
+    switch: null,
     wallDecor: [],
     outdoor: false,
     zombieCap: 0,

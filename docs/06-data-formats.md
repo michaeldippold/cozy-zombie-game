@@ -56,6 +56,9 @@ All game content is JSON under `/data`. These shapes are the contract between da
 - `walls.north` / `walls.west` may be a single sprite id or an array with one id per tile, so a street can be fence and then storefront.
 - `wallDecor: [{ tile, wall, variant }]` draws a wall variant (`window`, usually) with no edge behind it. Upper-floor windows are exactly this.
 - `data/world.json` lists the node files in load order, the edges file, and the starting node.
+- Interiors may name `walls.south` and `walls.east`: these draw as low cutaway stubs, never full walls. Outdoor nodes leave them out.
+- `lightsOn: true|false` is the room-light state of an interior. `switch: { tile, wall }` places the light switch on a near stub; by convention it is the tile beside the entrance.
+- `wallDecor` entries may use `south` or `east` to put a decorative window on a stub.
 - `floor` is the default floor sprite. `floorOverrides` replace single tiles.
 - `walls` names the wall sprite for the north row and west column. Edge tiles along those walls are drawn from the edge object's state instead.
 - `footprint` is `[w, h]` in tiles extending from `tile` in the +gx and +gy directions. The sprite definition must provide one frame per footprint tile. See below.

@@ -6,6 +6,17 @@ Rulings follow the tiebreaker in `00-vision.md`: what best serves a cozy Habbo-s
 
 ## Decisions
 
+### 2026-09-17 — Milestone 16, indoor light and coherent windows
+
+- **Every opening sits on the same edge inside as the wall it occupies outside.** Michael found the starter house impossible: windows flanking the door outside, on the back wall inside. Boarding the "back" windows boarded the front. My fault: the momentum fix moved the door to the near edge and left the windows behind. The house is north of the yard, so its south wall is the facade; door and windows now share that edge in the same order. Same for the blue house (east edge) and the shop's decorative windows.
+- **Near edges get a low cutaway stub wall, interiors only.** Habbo draws nothing there; The Sims draws stubs. A stub gives near-edge doors (a gap), windows (a short frame), and the light switch somewhere to live, never hides anything, and frames the room as a dollhouse.
+- **Room lights are a boolean per interior.** On: the whole room is lit, its windows cast real light outside through the light map, and the sim pull follows. Off: the room follows the clock. The starter house starts on; everything else off.
+- **A window glows only if the room behind it is lit.** The rounded fake glow is gone, at Michael's request. A lit window is a lit pane plus real light on the ground. Decorative windows have no room and never glow.
+- **Candles light the room and never the windows.** A placed candle is a static source in the interior light map, shadows included. Window emission is driven only by the room-light boolean, so candlelight is the stealthy option.
+- **The switch is always beside the entrance, with an LED.** Michael's worry: Zomboid's switches are already hard to find. Convention plus an always-visible LED (orange off, green on) drawn over the darkness. It is a simple action so E reaches it.
+- **Street lamps reach 3 tiles** (was 4.5). Michael: 4ish blocks was generous.
+- **No flashlight battery or candle burn time yet.** Michael finds it fiddly for the current game and wants other survival systems first. Parked as a future idea in `13-indoor-light.md`.
+
 ### 2026-09-17 — Milestone 15, light map with shadows
 
 - **Static light is a cached map; the flashlight is not in it.** Lamps and lit windows are baked per node at two cells per tile with line-of-sight shadows, rebuilt only when the set of sources changes (a window boarded or broken). The beam is evaluated exactly at query time. That keeps the drawn beam, the sight test, and the light value in agreement and avoids re-marching a cone every frame.
@@ -161,7 +172,9 @@ Values as of the end of milestone 11 (2026-09-14). Tuned only lightly; hands-on 
 | Player night-vision pool radius / centre strength | 190 px / 0.42 of the darkness removed, long falloff | `render.js` |
 | Screen-space wall pool at lit windows | 60 px (floor light comes from the map) | `render.js` |
 | Lamp warm glow alpha / radius | 0.22 × nightFactor / 60% of the lamp punch radius | `render.js` |
-| Light model: lamp / window radius (tiles) | 4.5 / 3.0 (milestone 14 analytic model used 2.4 / 1.8) | `light.js` |
+| Light model: lamp / window radius (tiles) | 3.0 / 3.0 (lamps were 4.5; Michael asked for about 3) | `light.js` |
+| Candle light radius | 3.2 tiles | `items.json` |
+| Near-edge stub height / window frame height | 8 px / 26 px | `placeholders.js` |
 | Light map resolution / core gain | 2 cells per tile / 1.4 (inner ~30% of a pool is fully lit) | `light.js` |
 | Flashlight beam range / arc | 6 tiles / 44° | `items.json` |
 | Flashlight self-light | +0.5 on the player's tile while on | `light.js` |

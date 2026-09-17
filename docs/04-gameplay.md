@@ -40,6 +40,10 @@ Noise is an event: `{ node, tile, loudness }`.
 
 See `docs/12-lighting.md`. Zombies see the player by the light on the player's tile: full range in daylight or a lamp pool, about a third of it unlit at night. A **flashlight** (F) casts a cone along the aim that stops at walls and trees; any zombie in the beam sees the player, full stop, and the light itself raises the neighbourhood's alarm at night. Carrying a lit torch also makes the player a visible point in the dark.
 
+## Indoor light
+
+See `docs/13-indoor-light.md`. Each interior has room lights, flipped at a switch that is always on the low wall beside the entrance and carries an LED visible in the dark. Lights on: the room is bright and its windows cast light outside, which draws zombies at night. Lights off: the room is as dark as the night outside, and you work by flashlight or by candles. A candle is placed from the inventory, lights the room around it, and is never visible through the windows.
+
 ## Zombies
 
 Dumb on purpose. Any cleverness comes from distribution and persistence, not from the individual.
@@ -78,7 +82,7 @@ Zombies have hp. The bat does moderate damage with knockback. The pistol does hi
 
 ## Items and inventory
 
-- Items have an id, name, weight, and a kind: `weapon`, `ammo`, `food`, `material`.
+- Items have an id, name, weight, and a kind: `weapon`, `ammo`, `food`, `material`, `tool`, `light`. A `light` item carries `light: { radius }` and emits while it stands on the floor.
 - Inventory is a weight-limited list. Over the limit, pickup is refused with a message.
 - Actions per item: use, drop, equip. Weapons equip. Food is used to restore health. Ammo is used automatically by the pistol. Planks are used through the world interaction, not the panel.
 - The inventory panel is a DOM panel toggled with `Tab`. When a container is open, its contents show beside the inventory with move buttons.

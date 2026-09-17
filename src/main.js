@@ -29,7 +29,7 @@ const CANVAS_H = 540;
 const THRESHOLD_TRIGGER_DIST = 0.3; // tiles from a threshold tile center to cross
 const EDGE_REARM_DIST = 0.6; // must move this far from the arrival tile before crossing again
 const CONTAINER_CLOSE_DIST = 1.6;
-const STARTING_ITEMS = [["bat", 1], ["pistol", 1], ["ammo_9mm", 12], ["flashlight", 1]];
+const STARTING_ITEMS = [["bat", 1], ["pistol", 1], ["ammo_9mm", 12], ["flashlight", 1], ["candle", 2]];
 const FLASHLIGHT_ALARM = 1.2; // alarm added to the current node per sim tick while on, outdoors, at night
 
 const canvas = document.getElementById("game");
@@ -392,6 +392,10 @@ function startGame() {
     panel.setOpen(true);
   });
   events.on("dropAtPlayer", ({ item, count }) => dropAt(item, count));
+  events.on("lightsToggled", ({ node: n }) => {
+    showMessage(n.lightsOn ? "Lights on." : "Lights off.");
+    sfx.dry();
+  });
   // Placeholder sounds.
   events.on("noise", (ev) => (ev.source === "glass" ? sfx.glass() : sfx.gunshot()));
   events.on("meleeSwing", () => sfx.swing());

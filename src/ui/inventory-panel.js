@@ -59,7 +59,7 @@ function rowButtons(g, inv, container) {
   if (g.def.kind === "food") b.push(`<button data-action="use" data-id="${g.id}">Eat</button>`);
   if (g.def.kind === "tool") b.push(`<button data-action="use" data-id="${g.id}">Toggle (F)</button>`);
   if (container) b.push(`<button data-action="store" data-id="${g.id}">Store</button>`);
-  b.push(`<button data-action="drop" data-id="${g.id}">Drop</button>`);
+  b.push(`<button data-action="drop" data-id="${g.id}">${g.def.kind === "light" ? "Place" : "Drop"}</button>`);
   return b.join("");
 }
 
