@@ -14,7 +14,7 @@ Milestone 22. Michael's brief (2026-09-17): water containers in your inventory t
 
 - **Water bottle**: an inventory item with a fill level, 0 to 100%. A full bottle is worth 100 thirst, so one bottle is one full drink. Its row reads "Water bottle (75%)" and has a **Drink** button, which drinks only what you need.
 - **You drink by yourself.** When thirst falls under 60 (the point where the moodle would appear) and you are carrying water, you take a drink automatically, emptiest bottle first, with a short message. Zomboid does this and it is right: remembering to click a bottle is a chore, not a decision. The decision is carrying water and keeping it filled. The result is that **the thirst moodle means "you are out of water"**.
-- **Soda**: a stackable one-shot drink (35 thirst, a little hunger). Drunk by hand only.
+- **Soda**: a one-shot drink (35 thirst, a little hunger). Drunk by hand only.
 - Food can carry a `thirst` field too. Chips are salty: minus 8.
 
 ## Refilling
@@ -22,7 +22,7 @@ Milestone 22. Michael's brief (2026-09-17): water containers in your inventory t
 - **Sinks** in the house and the house across the street, and a **drinking fountain** in the park. Right-click, or `E`:
   - **Drink** (1.5 s): thirst to full. The `E` action, offered only when you are under 90.
   - **Fill bottles** (2 s): every bottle you carry to 100%. Greyed out with none to fill.
-- Water sources are props with `"water": true` in the node JSON. They are infinite until shutoff exists.
+- Water sources are props with `"water": "sink"` (the name shown in the menu) in the node JSON. They are infinite until shutoff exists.
 
 ## Where bottles come from
 
