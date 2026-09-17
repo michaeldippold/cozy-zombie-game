@@ -77,6 +77,10 @@ Solid blocks in a colour that makes sense for the item, with a short name when i
 - Die, come back, search your old self: the layout is as you left it.
 - Snapshot round trip is deep-equal with items in the bag, a container, a body, and on the floor.
 
+## After first play (2026-09-17)
+
+Michael: loves it, but too small. Cells went from 28 to 38 internal pixels, labels and counts to 11 px, and a stacked item puts its label at the top so the count has the bottom corner to itself.
+
 ## Results (2026-09-17)
 
 Scripted in the browser and passed, with real pointer events for the panel. The starter kit placed without overlap; two more planks fit before "No room". `fits` rejected out-of-bounds and overlap; `findSpot` found a rotated slot for a bat in a 3x2 bag. 45 rounds became stacks of 30 and 15; dropping 5 onto 28 merged to 30 and left 3. Tidy kept every item and produced no overlap. 200 over-stuffed loot fills never overlapped or left the grid. A plank dragged from the bag into the fridge landed at 0,4. R mid-drag rotated the bat into row 3; a drop on occupied cells showed red and changed nothing; a drag outside the panel put the candle stack on the floor; shift-click took the soda; 8 rounds dragged onto 12 made 20. The bottle menu read "Drink (100%)" and drank 50. Equip worked from the menu and cleared when the pistol was stored. Place sets down one candle. A snapshot round trip with a custom layout, a filled fridge, a floor bottle, and a searched body was deep-equal. After death the former self kept a 6x4 grid that matched the backpack cell for cell.

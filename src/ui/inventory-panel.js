@@ -6,7 +6,7 @@ import { getItem } from "../items.js";
 import * as grid from "../grid.js";
 import * as menu from "./context-menu.js";
 
-const CELL = 28; // internal pixels; the UI layer is scaled with the canvas
+const CELL = 38; // internal pixels; the UI layer is scaled with the canvas
 const DRAG_THRESHOLD = 4; // screen pixels before a press becomes a drag
 
 let root = null;
@@ -84,6 +84,7 @@ function itemHtml(entry, index, which, equipped) {
   const cls = ["inv-item"];
   if (equipped) cls.push("equipped");
   if (h > w) cls.push("tall");
+  if (entry.count > 1) cls.push("stacked"); // label moves up so the count has room
   let inner = "";
   if (entry.fill != null) {
     // A water level: from the bottom when upright, from the left when on its side.

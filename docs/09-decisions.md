@@ -6,6 +6,11 @@ Rulings follow the tiebreaker in `00-vision.md`: what best serves a cozy Habbo-s
 
 ## Decisions
 
+### 2026-09-17 — Firearm complexity is at the sweet spot (Michael)
+
+- Michael is very happy with guns as they are: you need rounds in your bag and pulling the trigger uses them. **No magazines to juggle, no manual reloading, no racking, no jams.** Do not add firearm handling detail without being asked. (Matches the "not for this game" verdict in `16`.)
+- Inventory cells enlarged from 28 to 38 internal pixels after first play: the panel was too small to read, and stack counts collided with labels. Counts now sit under the label.
+
 ### 2026-09-17 — Grid inventory, and how furniture is carried (Michael's rulings)
 
 - **The inventory is a grid and weight is gone.** Michael: rows suit Zomboid because it has endless items; a grid suits a game with dozens, is visual, makes drag and drop natural, and shows "full" without a number. He never wants weight to slow the player, so nothing is lost. Settled before more loot is added. Built as `21-grid-inventory.md`.
