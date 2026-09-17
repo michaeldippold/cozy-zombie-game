@@ -55,13 +55,14 @@ The tree above is the original plan. Built since:
 | `src/interact.js` | Every world action: what is under the cursor, the E shortcut, timed actions, auto-walk approach tiles |
 | `src/ui/context-menu.js` | The right-click menu |
 | `src/clock.js` | Day/night clock: hour, phase, brightness, night factor |
+| `src/save.js` | One versioned `localStorage` slot: write, read, clear. Knows nothing about the game |
 | `src/light.js` | The single light function, the cached static light map, the flashlight beam, room daylight |
 | `src/sfx.js` | Synthesized placeholder sounds |
 | `src/placeholders.js`, `src/render-util.js` | Generated placeholder sheets and drawing helpers |
 | `data/world.json` | Node list, edges file, start node |
 | `serve.py` | No-cache dev server, plus a dev-only screenshot endpoint |
 
-Ownership additions: **time** is owned by `clock.js` and read directly by anything that needs it; **light** is owned by `light.js` and nothing else computes it; **room light state** (`lightsOn`) lives on the node, like edge state lives on the edge.
+Ownership additions: **time** is owned by `clock.js` and read directly by anything that needs it; **light** is owned by `light.js` and nothing else computes it; **room light state** (`lightsOn`) lives on the node, like edge state lives on the edge. **Saving**: each module serializes and restores its own state (`world`, `sim`, `clock`); `main.js` only assembles the snapshot and decides when to save. See `15-save-load.md`.
 
 ## Game loop
 

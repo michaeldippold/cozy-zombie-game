@@ -6,6 +6,13 @@ Rulings follow the tiebreaker in `00-vision.md`: what best serves a cozy Habbo-s
 
 ## Decisions
 
+### 2026-09-17 — Milestone 17, save and load
+
+- **One local slot, autosave only, death deletes it.** Zomboid rules. A manual save you can reload after a bad night would turn the zombies into a puzzle to retry rather than a threat to live with, which undercuts the vision's "chaos and horror". Local only for now; real saves wait until the game has earned them.
+- **A start screen on every load**, with the world drawn but frozen behind it. Michael's reason: nobody should be dropped straight into danger. It also carries the controls, which the game had nowhere to show.
+- **A save that does not fit the world is thrown away whole**, never half-applied. Content will keep changing during development and a half-loaded world is worse than a new one. The version number is bumped whenever the snapshot shape changes.
+- **Zombies in the room are saved as records** and re-materialized on load. Animations, cooldowns, paths, and in-progress actions are not saved; the cost is that a zombie mid-lunge is merely standing next to you after a reload.
+
 ### 2026-09-17 — Lighting called done for now
 
 - Michael confirmed indoor darkness with boarded windows, candles, and the flashlight indoors all behave as expected, and called the lighting arc finished for now. `14-lighting-reference.md` is the as-built source of truth; docs 11 to 13 are history and are marked where they were superseded. Next priority, per Michael: other survival systems, before limiters like a flashlight battery.

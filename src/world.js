@@ -57,6 +57,61 @@ function createEdge(json) {
   };
 }
 
+// ---- save / load (docs/15-save-load.md) ----
+
+// The state that makes this world this world: edge state, and per node the
+// floor items, room lights, and what each container holds.
+export function serialize() {
+  const edges = {};
+  for (const e of world.edges.values()) {
+    edges[e.id] = {
+      glass: e.glass,
+      glassHp: e.glassHp,
+      barricade: e.barricade ? { ...e.barricade } : null,
+      noise: e.noise,
+      scent: e.scent,
+    };
+  }
+  const nodes = {};
+  for (const n of world.nodes.values()) {
+    const containers = {};
+    for (const p of n.props) {
+      if (!p.container) continue;
+      containers[p.id] = { searched: p.searched, contents: p.contents.map((c) => ({ ...c })) };
+    }
+    nodes[n.id] = {
+      items: n.items.map((i) => ({ item: i.item, tile: [...i.tile], count: i.count })),
+      lightsOn: n.lightsOn,
+      containers,
+    };
+  }
+  return { edges, nodes };
+}
+
+// Apply a serialized world onto a freshly loaded one. Unknown ids throw, so a
+// save from different content is rejected whole rather than half-applied.
+export function restore(s) {
+  for (const [id, st] of Object.entries(s.edges)) {
+    const e = getEdge(id);
+    e.glass = st.glass;
+    e.glassHp = st.glassHp;
+    e.barricade = st.barricade ? { ...st.barricade } : null;
+    e.noise = st.noise || 0;
+    e.scent = st.scent || 0;
+  }
+  for (const [id, st] of Object.entries(s.nodes)) {
+    const n = getNode(id);
+    n.items = st.items.map((i) => ({ item: i.item, tile: [...i.tile], count: i.count }));
+    n.lightsOn = !!st.lightsOn;
+    for (const [propId, c] of Object.entries(st.containers || {})) {
+      const p = n.props.find((q) => q.id === propId);
+      if (!p) throw new Error(`Save refers to unknown container ${propId} in ${id}`);
+      p.searched = !!c.searched;
+      p.contents = c.contents.map((x) => ({ ...x }));
+    }
+  }
+}
+
 export function getNode(id) {
   const n = world.nodes.get(id);
   if (!n) throw new Error(`Unknown node ${id}`);

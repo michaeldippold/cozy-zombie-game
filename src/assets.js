@@ -21,12 +21,20 @@ function loadImage(src) {
   });
 }
 
+const pendingDefs = new Map();
+
 export async function loadSpriteDef(id) {
   if (defs.has(id)) return defs.get(id);
-  const def = await loadJson(`data/sprites/${id}.json`);
-  def.id = id;
-  defs.set(id, def);
-  return def;
+  // Share one request between callers that ask for the same sprite at once.
+  if (!pendingDefs.has(id)) {
+    pendingDefs.set(id, loadJson(`data/sprites/${id}.json`).then((def) => {
+      def.id = id;
+      defs.set(id, def);
+      pendingDefs.delete(id);
+      return def;
+    }));
+  }
+  return pendingDefs.get(id);
 }
 
 export function getDef(id) {

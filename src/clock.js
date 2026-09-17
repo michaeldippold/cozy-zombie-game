@@ -31,6 +31,11 @@ export function getElapsed() {
   return elapsed;
 }
 
+// For loading a save.
+export function setElapsed(v) {
+  elapsed = v;
+}
+
 // 0..1 position within the current cycle.
 export function cycleT() {
   return (elapsed % DAY_LENGTH) / DAY_LENGTH;
@@ -72,10 +77,15 @@ export function nightFactor() {
   return Math.max(0, Math.min(1, (DAY_B - getBrightness()) / (DAY_B - NIGHT_B)));
 }
 
-// "Day 3, 22:15" for the HUD.
-export function getLabel() {
-  const h = getHour();
+// "Day 3, 22:15" for any elapsed value (the HUD, and the Continue button).
+export function formatLabel(e) {
+  const h = ((e % DAY_LENGTH) / DAY_LENGTH) * 24;
   const hh = Math.floor(h);
   const mm = Math.floor((h - hh) * 60);
-  return `Day ${getDay()}, ${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+  const day = Math.floor(e / DAY_LENGTH) + 1;
+  return `Day ${day}, ${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+}
+
+export function getLabel() {
+  return formatLabel(elapsed);
 }

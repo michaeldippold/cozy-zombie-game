@@ -11,13 +11,14 @@ import * as world from "./world.js";
 import * as sim from "./sim.js";
 import * as clock from "./clock.js";
 import * as light from "./light.js";
+import * as save from "./save.js";
 import { loadItems, loadLoot, getItem } from "./items.js";
 import { nearestWalkable } from "./node.js";
 import { createPlayer, updatePlayer, damagePlayer, autoWalk, cancelAutoWalk } from "./entities/player.js";
 import { createZombie, updateZombie, hearNoise } from "./entities/zombie.js";
 import { renderNode, setNightTint } from "./render.js";
 import { initHud, updateHud } from "./ui/hud.js";
-import { initOverlay, showGameOver } from "./ui/overlay.js";
+import { initOverlay, showGameOver, showStartScreen, showPause, hideOverlay } from "./ui/overlay.js";
 import { initPrompt, updatePrompt, showMessage, updateMessage } from "./ui/prompt.js";
 import * as panel from "./ui/inventory-panel.js";
 import * as menu from "./ui/context-menu.js";
@@ -45,6 +46,10 @@ let inv = null;
 let zombies = [];
 let gameOver = false;
 let openContainer = null; // prop whose contents are shown beside the inventory
+let started = false; // a game has been started or continued; nothing saves before this
+let pauseOpen = false;
+let autosaveTimer = 0;
+const AUTOSAVE_SECONDS = 60;
 
 function resize() {
   const scale = Math.max(1, Math.floor(Math.min(window.innerWidth / CANVAS_W, window.innerHeight / CANVAS_H)));
@@ -113,6 +118,132 @@ function transition(ref) {
   combat.effects.length = 0;
   materializeNode();
   events.emit("playerMoved", { node: node.id, edge });
+  saveGame();
+}
+
+// ---- save / load (docs/15-save-load.md) ----
+
+// Each module serializes its own state; this only assembles the snapshot.
+function snapshot() {
+  return {
+    version: save.SAVE_VERSION,
+    savedAt: Date.now(),
+    clock: clock.getElapsed(),
+    player: {
+      node: node.id,
+      gx: player.gx,
+      gy: player.gy,
+      facing: player.facing,
+      hp: player.hp,
+      stamina: player.stamina,
+      hunger: player.hunger,
+      flashlightOn: player.flashlightOn,
+    },
+    inv: { items: inv.items.map((i) => ({ ...i })), equipped: inv.equipped },
+    world: world.serialize(),
+    sim: sim.serialize(zombies, node.id),
+  };
+}
+
+// Build a fresh world, then lay the snapshot over it. Throws if the snapshot
+// does not fit this world; callers fall back to a new game.
+function applySnapshot(s) {
+  startGame();
+  for (const it of s.inv.items) getItem(it.id);
+  for (const n of Object.values(s.world.nodes)) for (const it of n.items) getItem(it.item);
+  world.restore(s.world);
+  sim.restore(s.sim);
+  clock.setElapsed(s.clock);
+  node = world.getNode(s.player.node);
+  world.setCurrent(node.id);
+  centerNode(node);
+  player.gx = s.player.gx;
+  player.gy = s.player.gy;
+  player.facing = s.player.facing || "s";
+  player.hp = s.player.hp;
+  player.stamina = s.player.stamina;
+  player.hunger = s.player.hunger;
+  player.flashlightOn = !!s.player.flashlightOn;
+  player.beam = player.flashlightOn ? getItem("flashlight").beam : null;
+  // Do not cross a door we happen to be standing in the moment we load.
+  player.arrivedTile = [Math.round(player.gx), Math.round(player.gy)];
+  inv.items = s.inv.items.map((i) => ({ ...i }));
+  inv.equipped = s.inv.equipped;
+  light.resetCache();
+  materializeNode();
+  updateHud(hudState());
+}
+
+function saveGame() {
+  if (!started || gameOver) return false;
+  autosaveTimer = 0;
+  return save.write(snapshot());
+}
+
+function loadSaved() {
+  const s = save.read();
+  if (!s) return false;
+  try {
+    applySnapshot(s);
+    return true;
+  } catch (err) {
+    console.warn("Save could not be loaded and was discarded:", err);
+    save.clear();
+    startGame();
+    return false;
+  }
+}
+
+function saveLabel() {
+  const s = save.read();
+  if (!s) return null;
+  const n = data.nodes.find((d) => d.id === s.player?.node);
+  return { label: `${clock.formatLabel(s.clock || 0)} · ${n ? n.name : "somewhere"}` };
+}
+
+// ---- start screen and pause ----
+
+function openStartScreen() {
+  started = false;
+  pauseOpen = false;
+  loop.setPaused(true);
+  showStartScreen({ save: saveLabel(), onContinue: continueGame, onNew: newGame });
+}
+
+function newGame() {
+  save.clear();
+  startGame();
+  started = true;
+  hideOverlay();
+  loop.setPaused(false);
+}
+
+function continueGame() {
+  const ok = loadSaved();
+  started = true;
+  hideOverlay();
+  loop.setPaused(false);
+  if (!ok) showMessage("That save could not be loaded. Starting fresh.", 4);
+  return ok;
+}
+
+function togglePause() {
+  if (!started || gameOver) return;
+  if (pauseOpen) {
+    pauseOpen = false;
+    hideOverlay();
+    loop.setPaused(false);
+    return;
+  }
+  pauseOpen = true;
+  loop.setPaused(true);
+  showPause({
+    onResume: togglePause,
+    onQuit: () => {
+      saveGame();
+      openStartScreen();
+    },
+  });
 }
 
 function checkTransitions() {
@@ -318,6 +449,9 @@ function update(dt) {
   updateInventoryUi();
   syncFlashlight();
 
+  autosaveTimer += dt;
+  if (autosaveTimer >= AUTOSAVE_SECONDS) saveGame();
+
   updateHud(hudState());
   input.endStep();
 }
@@ -358,7 +492,8 @@ function checkGameOver(cause) {
   if (gameOver || player.hp > 0) return;
   gameOver = true;
   menu.closeContextMenu();
-  showGameOver(startGame, cause);
+  save.clear(); // Zomboid rules: dying deletes the save
+  showGameOver(newGame, cause);
 }
 
 function onPlayerHit({ damage }) {
@@ -483,6 +618,21 @@ async function boot() {
   startGame();
 
   loop.start({ update, render, simTick }, { simIntervalMs: 1000 });
+
+  // Save when the tab goes away, and pause on Escape. The Escape listener is
+  // here rather than in input.js because input is not polled while paused.
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") saveGame();
+  });
+  window.addEventListener("beforeunload", () => saveGame());
+  window.addEventListener("keydown", (e) => {
+    if (e.code !== "Escape") return;
+    if (menu.isMenuOpen()) return; // the context menu closes itself on Escape
+    togglePause();
+  });
+
+  // The world is built and drawn, but nothing moves until a button is pressed.
+  openStartScreen();
   window.__game = {
     iso, input, loop, assets, events, combat, inventory, world, sim, clock, light, getItem, menu,
     get node() { return node; },
@@ -494,6 +644,14 @@ async function boot() {
     panel,
     panelHandlers,
     restart: startGame,
+    // Save and start-screen hooks. Scripted tests call newGame() first.
+    newGame,
+    continueGame,
+    saveGame,
+    snapshot,
+    applySnapshot,
+    save,
+    get started() { return started; },
     setNightTint,
     setHour(h) {
       const target = (h / 24) * clock.DAY_LENGTH;

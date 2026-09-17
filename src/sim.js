@@ -48,6 +48,61 @@ export function reset() {
   trickleTimer = 0;
 }
 
+// ---- save / load (docs/15-save-load.md) ----
+
+function copyRecord(r) {
+  return {
+    id: r.id,
+    node: r.node,
+    tile: [...r.tile],
+    state: r.state,
+    targetEdge: r.targetEdge ?? null,
+    targetSide: r.targetSide ?? null,
+    timer: r.timer || 0,
+    hp: r.hp,
+    aggro: !!r.aggro,
+  };
+}
+
+// Every zombie as a record: the off-screen ones as they are, and the ones in
+// the current node written at their tile, corpses included. Does not touch the
+// live sim.
+export function serialize(zombiesHere, nodeId) {
+  const out = [...records.values()].map(copyRecord);
+  for (const z of zombiesHere) {
+    out.push({
+      id: z.id,
+      node: nodeId,
+      tile: [Math.round(z.gx), Math.round(z.gy)],
+      state: z.dead || z.state === "die" ? "dead" : "idle",
+      targetEdge: null,
+      targetSide: null,
+      timer: 0,
+      hp: z.dead ? 0 : z.hp,
+      aggro: !!z.aggro && !z.dead && z.state !== "die",
+    });
+  }
+  return {
+    records: out,
+    alarm: Object.fromEntries(alarm),
+    trickleTimer,
+    nextSpawnId,
+  };
+}
+
+export function restore(s) {
+  records.clear();
+  alarm.clear();
+  for (const r of s.records) {
+    world.getNode(r.node); // throws on an unknown node
+    if (r.targetEdge) world.getEdge(r.targetEdge);
+    records.set(r.id, copyRecord(r));
+  }
+  for (const [id, v] of Object.entries(s.alarm || {})) alarm.set(id, v);
+  trickleTimer = s.trickleTimer || 0;
+  nextSpawnId = s.nextSpawnId || nextSpawnId;
+}
+
 export function addRecord(rec) {
   records.set(rec.id, rec);
   return rec;

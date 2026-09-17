@@ -4,13 +4,13 @@ Working checklist. A new session should read `CLAUDE.md`, then this file, then t
 
 ## Status
 
-- **Current milestone:** 16 complete (2026-09-17). Michael has called the lighting arc done for now. The as-built reference is `docs/14-lighting-reference.md`.
-- **What exists:** seven-node neighbourhood with gates and stairs (M12); hunger and a day/night clock (M13); flashlight and light-aware zombie sight (M14); per-node light map with shadows (M15); room lights with a findable switch, candles, coherent windows on cutaway stub walls, and daylight that depends on unboarded openings (M16). Right-click menus with auto-walk, screen-space gun, doorway thresholds, stamina-costed melee, plank refunds.
-- **Last completed task (2026-09-17):** Lighting documented and closed out. Wrote `docs/14-lighting-reference.md`, marked superseded passages in docs 11 to 13 and two reversed rulings in `09`, updated `03`, `05`, `07`, `CLAUDE.md`, and the README, and removed a dead screen-space window-pool loop and a stale comment from `render.js`. Michael verified in play: indoor darkness with boarded windows, candles, and the flashlight indoors.
+- **Current milestone:** 17 complete (2026-09-17): save, load, start screen, pause menu. Scope and results in `docs/15-save-load.md`.
+- **What exists:** seven-node neighbourhood with gates and stairs (M12); hunger and a day/night clock (M13); flashlight and light-aware zombie sight (M14); per-node light map with shadows (M15); room lights, candles, coherent windows, daylight through openings (M16); one-slot local autosave, start screen, Escape pause menu, death deletes the save (M17). Right-click menus with auto-walk, screen-space gun, doorway thresholds, stamina-costed melee, plank refunds.
+- **Last completed task (2026-09-17):** Milestone 17 built and verified by script. Also wrote `docs/16-zomboid-systems-fit.md`, a survey of Project Zomboid systems with a fit verdict for each; it is the menu for choosing the next survival systems and nothing in it is built.
 - **History:** each milestone doc (10 to 13) ends with its scripted acceptance results; `docs/09-decisions.md` has every ruling with its reason, newest first, including the ones that were reversed.
 - **Blocked on:** nothing
-- **Candidate next steps (not started, need Michael's call):** Michael's stated priority is **more survival systems** before limiters. Candidates: thirst and sleep/fatigue alongside hunger; save/load, which matters more now that sessions span days; door open/close; weapon degradation; a neighbourhood power cut that makes candles matter; hands-on tuning of hunger drain and night pull. Parked: flashlight battery, candle burn time, daylight pooled at windows, peeking through windows. Later: Tiled importer, real art last.
-- **Notes for next session:** Run with `python serve.py 8000` (a no-cache static server; plain `http.server` serves stale modules). For scripted tests in a browser console: `window.__game.loop.setPaused(true)` first, then drive time with `window.__game.loop.advance(seconds)`; the game otherwise runs in real time between commands. `?sheet=<id>&scale=2` on the URL renders a sprite sheet instead of the game. Interaction (E), prompt, pickups, container search, and plank boarding were built during milestone 8 in `src/interact.js` and `src/ui/prompt.js`; milestone 9 only needs the panel, container view, use/drop/equip, and food.
+- **Candidate next steps (not started, need Michael's call):** pick from the "build next" list in `docs/16-zomboid-systems-fit.md`. Parked: flashlight battery, candle burn time, daylight pooled at windows, peeking through windows. Later: Tiled importer, real art last.
+- **Notes for next session:** Run with `python serve.py 8000` (a no-cache static server; plain `http.server` serves stale modules). For scripted tests in a browser console: the game now boots to a start screen, so call `window.__game.newGame()` first, then `window.__game.loop.setPaused(true)`, then drive time with `window.__game.loop.advance(seconds)`; the game otherwise runs in real time between commands. `?sheet=<id>&scale=2` on the URL renders a sprite sheet instead of the game. Interaction (E), prompt, pickups, container search, and plank boarding were built during milestone 8 in `src/interact.js` and `src/ui/prompt.js`; milestone 9 only needs the panel, container view, use/drop/equip, and food.
 
 Milestone acceptance criteria live in [docs/08-milestones.md](docs/08-milestones.md). Fixed numbers live in [docs/01-constraints.md](docs/01-constraints.md). Tunable starting values live in [docs/09-decisions.md](docs/09-decisions.md).
 
@@ -113,6 +113,15 @@ Milestone acceptance criteria live in [docs/08-milestones.md](docs/08-milestones
 - [x] Occluders draw at alpha 0.4.
 - [x] Silhouette pass via an offscreen canvas with `source-in`.
 - [x] Verify acceptance in the yard behind trees with player and a zombie together.
+
+## Milestone 17 — Save, load, start screen (see docs/15-save-load.md)
+
+- [x] `src/save.js`: one `localStorage` slot, versioned, unreadable or wrong-version saves discarded.
+- [x] `serialize()` / `restore()` owned by each module: `world.js` (edge state, floor items, room lights, container contents), `sim.js` (all zombies as records, alarm, trickle timer, spawn id), `clock.setElapsed`.
+- [x] `main.js`: `snapshot()`, `applySnapshot()` over a fresh world inside try/catch, autosave on node transition, every 60 s, on tab hide and unload, and on quit to title. Never before start or after death. Death deletes the save.
+- [x] `ui/overlay.js`: start screen (Continue with day, time, and place; New game; controls) and Escape pause menu (Resume; Save and quit to title). Loop paused behind both.
+- [x] `assets.js`: concurrent requests for the same sprite definition share one fetch (boot made 150 requests, now 82).
+- [x] Verify acceptance in docs/15 (scripted and passed 2026-09-17).
 
 ## Milestone 16 — Indoor light and coherent windows (see docs/13-indoor-light.md)
 

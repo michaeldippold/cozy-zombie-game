@@ -30,10 +30,13 @@ Seven connected dioramas (a house, its yard, a street, a shop, a two-storey hous
 | Right click | Context menu with every action on the target: pick up, search, board, go through a door, walk here. Out of range actions auto-walk first |
 | E | Shortcut for the nearest pick up, search, or light switch |
 | Tab | Inventory panel |
+| Esc | Pause; save and quit to the title screen |
 
 Doors are doorways: walk into the opening and onto the threshold tile to go through. Standing near a door never crosses it.
 
-Debug: `]` skips the clock forward one hour. `?sheet=<sprite id>&scale=2` on the URL renders a sprite sheet instead of the game. `window.__game` exposes the live state in the console; `window.__game.loop.setPaused(true)` then `window.__game.loop.advance(seconds)` steps time deterministically.
+The game saves by itself to this browser (one slot, `localStorage`): when you change area, once a minute, and when the tab closes. Dying deletes the save.
+
+Debug: `]` skips the clock forward one hour. `?sheet=<sprite id>&scale=2` on the URL renders a sprite sheet instead of the game. `window.__game` exposes the live state in the console; `window.__game.newGame()` dismisses the start screen; `window.__game.loop.setPaused(true)` then `window.__game.loop.advance(seconds)` steps time deterministically.
 
 ## Documents
 
@@ -51,5 +54,7 @@ Read them in order the first time. After that, `docs/00-vision.md` is the tiebre
 | [07-demo-scope.md](docs/07-demo-scope.md) | Exactly what the demo contains and what it deliberately leaves out. |
 | [08-milestones.md](docs/08-milestones.md) | Build order with acceptance criteria per step. |
 | [09-decisions.md](docs/09-decisions.md) | Decision log with rationale, plus open questions. |
+| [15-save-load.md](docs/15-save-load.md) | What is saved, when, and the start and pause screens. |
+| [16-zomboid-systems-fit.md](docs/16-zomboid-systems-fit.md) | Project Zomboid's systems, and which of them belong in this game. |
 
 The original brainstorm this was derived from is `iso-zombie-demo-spec.md` at the repo root. It is superseded by `docs/` and kept for reference only.

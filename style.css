@@ -333,6 +333,55 @@ html, body {
   background: #86d676;
 }
 
+.overlay-card button.secondary {
+  background: #4a4058;
+  color: #eee;
+}
+
+.overlay-card button.secondary:hover {
+  background: #5e5070;
+}
+
+.overlay-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.overlay-sub {
+  display: block;
+  font-size: 11px;
+  opacity: 0.75;
+}
+
+.overlay-start {
+  max-width: 520px;
+}
+
+.overlay-controls {
+  margin: 14px auto 6px;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+  color: #cfc8d8;
+}
+
+.overlay-controls td {
+  padding: 2px 8px;
+}
+
+.overlay-controls td:nth-child(odd) {
+  color: #f0e08a;
+  white-space: nowrap;
+}
+
+.overlay-card p.overlay-note {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: #8a8296;
+}
+
 #debug {
   position: absolute;
   top: 4px;
