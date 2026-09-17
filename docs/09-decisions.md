@@ -226,7 +226,6 @@ Values as of the end of milestone 11 (2026-09-14). Tuned only lightly; hands-on 
 | Scent weight when player crosses edge | 3, decays 30% per tick | `sim.js` |
 | Container search time | 1.0 s | `prompt.js` |
 | Board time | 2.0 s | `prompt.js` |
-| Inventory weight limit | 15 | `inventory.js` |
 | Occluder alpha / silhouette alpha / occluder min frame height | 0.4 / 0.55 / 64 px | `render.js` |
 | Day length | 720 s (12 min) real time per full cycle | `clock.js` |
 | Day / dusk / night / dawn boundaries | day 07:00–22:00, dusk 22:00–23:00, night 23:00–06:00, dawn 06:00–07:00 (was fractions of the cycle that didn't map to sane hours) | `clock.js` |

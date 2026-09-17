@@ -89,7 +89,7 @@ Add `items.js`, `inventory.js`, `ui/prompt.js`, `ui/inventory-panel.js`, loot ta
 
 - Containers with search timer and loot rolled once.
 - Floor pickups. Food restores health. Ammo stacks.
-- Inventory panel with weight limit, use, drop, equip, and container side view.
+- Inventory panel with weight limit, use, drop, equip, and container side view. *(Replaced by the grid inventory in milestone 23.)*
 
 **Accept when:** a full loop works: search the fridge, eat, pick up a plank, board a window, run out of ammo, find more.
 

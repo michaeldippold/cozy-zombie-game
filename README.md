@@ -54,12 +54,17 @@ Read them in order the first time. After that, `docs/00-vision.md` is the tiebre
 | [07-demo-scope.md](docs/07-demo-scope.md) | Exactly what the demo contains and what it deliberately leaves out. |
 | [08-milestones.md](docs/08-milestones.md) | Build order with acceptance criteria per step. |
 | [09-decisions.md](docs/09-decisions.md) | Decision log with rationale, plus open questions. |
+| [10-neighbourhood.md](docs/10-neighbourhood.md) | The seven-node neighbourhood, hop distance, alarm, and the trickle spawner. |
+| [11-hunger-and-night.md](docs/11-hunger-and-night.md) | Hunger and the day/night clock. |
+| [12-lighting.md](docs/12-lighting.md) | The flashlight and the per-tile light map (history). |
+| [13-indoor-light.md](docs/13-indoor-light.md) | Room lights, candles, coherent windows (history). |
+| [14-lighting-reference.md](docs/14-lighting-reference.md) | The lighting system as built. Wins over 11 to 13 where they disagree. |
 | [15-save-load.md](docs/15-save-load.md) | What is saved, when, and the start and pause screens. |
 | [16-zomboid-systems-fit.md](docs/16-zomboid-systems-fit.md) | Project Zomboid's systems, and which of them belong in this game. |
-| [18-death-and-survivors.md](docs/18-death-and-survivors.md) | What happens when you die: turning, your former self, the next survivor. |
-| [21-grid-inventory.md](docs/21-grid-inventory.md) | The grid inventory: sizes, rules, and controls. |
-| [20-thirst.md](docs/20-thirst.md) | Thirst, water bottles with a fill level, sinks, and body despawn. |
-| [19-bodies.md](docs/19-bodies.md) | Dead zombies are searchable containers with their own loot table. |
 | [17-moodles.md](docs/17-moodles.md) | Status icons for slow needs: what is a bar, what is a moodle, and the stages. |
+| [18-death-and-survivors.md](docs/18-death-and-survivors.md) | What happens when you die: turning, your former self, the next survivor. |
+| [19-bodies.md](docs/19-bodies.md) | Dead zombies are searchable containers with their own loot table. |
+| [20-thirst.md](docs/20-thirst.md) | Thirst, water bottles with a fill level, sinks, and body despawn. |
+| [21-grid-inventory.md](docs/21-grid-inventory.md) | The grid inventory: sizes, rules, and controls. |
 
 The original brainstorm this was derived from is `iso-zombie-demo-spec.md` at the repo root. It is superseded by `docs/` and kept for reference only.

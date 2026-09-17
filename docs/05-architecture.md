@@ -32,8 +32,8 @@ Keep modules small and dumb. Each file has one job. Data flows down from `world`
   ui/
     hud.js
     prompt.js
-    inventory-panel.js
-    overlay.js          game over and restart
+    inventory-panel.js  grid bags, drag and drop
+    overlay.js          start screen, pause, death card
 /data
   nodes/house.json
   nodes/yard.json

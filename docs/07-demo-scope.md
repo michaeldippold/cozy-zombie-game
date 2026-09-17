@@ -43,11 +43,11 @@ A small exterior, about 12×10 tiles.
 - One food item type.
 - Ammo pickups.
 - Planks that board the door or a window from inside.
-- A DOM inventory panel with use, drop, equip.
+- A DOM inventory panel with use, drop, equip. *(Now a grid with drag and drop; see `21-grid-inventory.md`.)*
 
 ## Explicitly out of scope
 
-- Thirst, fatigue, sleep, cooking, crafting, spoilage. Hunger and a day/night cycle were added in milestone 13; see `docs/11-hunger-and-night.md`.
+- Fatigue, sleep, cooking, crafting, spoilage. Hunger and a day/night cycle were added in milestone 13 (`11-hunger-and-night.md`); thirst in milestone 22 (`20-thirst.md`).
 - Multiple floors. More than two nodes.
 - Save and load.
 - Audio, beyond placeholder sounds. The demo synthesizes short WebAudio blips in `src/sfx.js` for shots, swings, hits, glass, pickups, and boarding. No audio files.

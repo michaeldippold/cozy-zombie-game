@@ -39,4 +39,4 @@ Then open http://localhost:8000. ES modules will not load from `file://`. `serve
 
 ## Testing from a browser console
 
-`window.__game` exposes the live state. The game boots to a start screen with the loop paused: call `window.__game.newGame()` (or `continueGame()`) first. Then call `window.__game.loop.setPaused(true)` first, then `window.__game.loop.advance(seconds)` to step time deterministically; otherwise the game runs in real time between commands. `?sheet=<sprite id>&scale=2` on the URL renders a sprite sheet instead of the game.
+`window.__game` exposes the live state. The game boots to a start screen with the loop paused: call `window.__game.newGame()` (or `continueGame()`) first, then `window.__game.loop.setPaused(true)`, then `window.__game.loop.advance(seconds)` to step time deterministically; otherwise the game runs in real time between commands. `?sheet=<sprite id>&scale=2` on the URL renders a sprite sheet instead of the game.

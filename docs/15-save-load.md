@@ -1,4 +1,4 @@
-> **Superseded in part (2026-09-17):** death no longer deletes the save. See `18-death-and-survivors.md`. `SAVE_VERSION` is now 2.
+> **Superseded in part (2026-09-17):** death no longer deletes the save. See `18-death-and-survivors.md`. `SAVE_VERSION` has been bumped since (4 as of the grid inventory).
 
 # 15 — Milestone 17: Save, load, and a start screen
 
