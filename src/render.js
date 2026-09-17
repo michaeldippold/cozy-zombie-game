@@ -90,11 +90,17 @@ function drawWindowGlow(ctx, cx, cy) {
 // Radii (screen px) of the light-punch a source carves into the night wash.
 const WINDOW_LIGHT_RADIUS = 95;
 const LAMP_LIGHT_RADIUS = 140;
-// Night is a moonlight tint, not a black fog. The layer is composited with
-// "multiply" so colours darken proportionally and stay readable; at full
-// night an unlit tile keeps roughly 55-80% of its brightness per channel.
-const NIGHT_TINT = "120, 135, 200";
-const NIGHT_TINT_ALPHA = 0.85;
+// Night is dark but never black: things in the open are faintly visible, and
+// light sources make them meaningfully brighter. The layer is composited with
+// "multiply" so colours darken proportionally; at full night a far, unlit tile
+// keeps roughly 35-60% of its brightness per channel, blue-shifted.
+const NIGHT_TINT = "70, 80, 140";
+const NIGHT_TINT_ALPHA = 0.9;
+// The player's own night vision: a wide, weak, very gradual lift around them.
+// Low centre strength and a long falloff so it never reads as a spotlight that
+// follows you around. Visual only; zombie sight does not use it.
+const PLAYER_VIS_RADIUS = 190; // px, about three tiles
+const PLAYER_VIS_STRENGTH = 0.42; // fraction of the darkness removed at the centre
 // Warm additive pool drawn at lamps on top of the tint, so light reads as
 // light and not just as "less dark".
 const LAMP_GLOW_ALPHA = 0.22;
@@ -179,6 +185,20 @@ function drawNightOverlay(ctx, node, lightSources, player) {
   nightCtx.clearRect(0, 0, w, h);
   nightCtx.fillStyle = `rgba(${NIGHT_TINT}, ${NIGHT_TINT_ALPHA * n})`;
   nightCtx.fillRect(0, 0, w, h);
+
+  // The player's inherent visibility: partial erase, long smooth falloff.
+  if (player) {
+    const o = aimOrigin(player);
+    const r = PLAYER_VIS_RADIUS;
+    nightCtx.globalCompositeOperation = "destination-out";
+    const pg = nightCtx.createRadialGradient(o.x, o.y + 10, 0, o.x, o.y + 10, r);
+    pg.addColorStop(0, `rgba(255,255,255,${PLAYER_VIS_STRENGTH})`);
+    pg.addColorStop(0.35, `rgba(255,255,255,${PLAYER_VIS_STRENGTH * 0.8})`);
+    pg.addColorStop(0.7, `rgba(255,255,255,${PLAYER_VIS_STRENGTH * 0.35})`);
+    pg.addColorStop(1, "rgba(255,255,255,0)");
+    nightCtx.fillStyle = pg;
+    nightCtx.fillRect(o.x - r, o.y + 10 - r, r * 2, r * 2);
+  }
 
   // Erase soft pools at each light source. Wide falloff so pools blend into
   // the moonlight instead of ending in a hard ring.

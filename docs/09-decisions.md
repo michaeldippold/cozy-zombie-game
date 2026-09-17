@@ -6,6 +6,13 @@ Rulings follow the tiebreaker in `00-vision.md`: what best serves a cozy Habbo-s
 
 ## Decisions
 
+### 2026-09-17 — Darker night with a personal visibility radius
+
+- **The flashlight has to be needed, so the dark got darker, but never black.** With the moonlight tint at 55–80% brightness the torch was a decoration: Michael could see every corner without it. Far, unlit tiles now keep roughly 35–60% per channel: things out there are faintly visible, and light makes them meaningfully brighter.
+- **Rejected: hiding zombies in the dark.** I proposed not drawing zombies on unlit tiles. Michael's objection stands: if the tree in the corner is visible but a zombie blips into existence when it reaches light, it reads as spawning, not as revealed. Everything in the dark dims together.
+- **The player has inherent night vision: a wide, weak, gradual lift around them.** About three tiles, 42% of the darkness removed at the centre, long smooth falloff. Deliberately too weak and too soft-edged to read as a spotlight following you. Visual only; zombie sight does not use it.
+- **Per-tile lighting (milestone 15) comes after this is settled**, and inherits these levels.
+
 ### 2026-09-17 — Milestone 14, flashlight and light-aware zombies
 
 - **Light is one function.** `light.lightAt(node, gx, gy, player)` returns 0..1 and everything reads it: zombie sight, the sim's flashlight alarm, the debug line. Milestone 15 swaps its inside for a per-tile map without touching callers. Scoped in `docs/12-lighting.md` at Michael's request; he expects the map to pay for itself as the game grows.
@@ -139,7 +146,8 @@ Values as of the end of milestone 11 (2026-09-14). Tuned only lightly; hands-on 
 | Day / dusk / night / dawn boundaries | day 07:00–22:00, dusk 22:00–23:00, night 23:00–06:00, dawn 06:00–07:00 (was fractions of the cycle that didn't map to sane hours) | `clock.js` |
 | New game start time | 08:00 (was 00:00) | `clock.js` |
 | Brightness: day / night | 1.0 / 0.22 (never full black) | `clock.js` |
-| Night tint colour / alpha / blend | rgb(120,135,200) / 0.85 × nightFactor / multiply, outdoor nodes only (was a 50% indigo alpha wash: too dark) | `render.js` |
+| Night tint colour / alpha / blend | rgb(70,80,140) / 0.9 × nightFactor / multiply, outdoor nodes only. History: 50% indigo alpha wash (too black), then rgb(120,135,200) at 0.85 (too readable, torch unnecessary) | `render.js` |
+| Player night-vision pool radius / centre strength | 190 px / 0.42 of the darkness removed, long falloff | `render.js` |
 | Light-punch radius: window / lamp | 95 px / 140 px (was 70 / 100) | `render.js` |
 | Lamp warm glow alpha / radius | 0.22 × nightFactor / 60% of the lamp punch radius | `render.js` |
 | Light model: lamp / window radius (tiles) | 2.4 / 1.8 | `light.js` |
