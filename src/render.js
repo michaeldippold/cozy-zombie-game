@@ -86,8 +86,16 @@ function drawWindowGlow(ctx, cx, cy) {
 }
 
 // Radii (screen px) of the light-punch a source carves into the night wash.
-const WINDOW_LIGHT_RADIUS = 70;
-const LAMP_LIGHT_RADIUS = 100;
+const WINDOW_LIGHT_RADIUS = 95;
+const LAMP_LIGHT_RADIUS = 140;
+// Night is a moonlight tint, not a black fog. The layer is composited with
+// "multiply" so colours darken proportionally and stay readable; at full
+// night an unlit tile keeps roughly 55-80% of its brightness per channel.
+const NIGHT_TINT = "120, 135, 200";
+const NIGHT_TINT_ALPHA = 0.85;
+// Warm additive pool drawn at lamps on top of the tint, so light reads as
+// light and not just as "less dark".
+const LAMP_GLOW_ALPHA = 0.22;
 // Props with these sprite ids act as light sources after dark.
 const LIGHT_PROP_SPRITES = new Set(["lamp"]);
 
@@ -137,7 +145,7 @@ function collectPropLights(node, out) {
     if (!LIGHT_PROP_SPRITES.has(prop.sprite)) continue;
     const [tx, ty] = prop.tile;
     const p = iso.toScreen(tx, ty);
-    out.push({ x: Math.round(p.x), y: Math.round(p.y) - 14, radius: LAMP_LIGHT_RADIUS });
+    out.push({ x: Math.round(p.x), y: Math.round(p.y) - 14, radius: LAMP_LIGHT_RADIUS, warm: true });
   }
 }
 
@@ -166,21 +174,37 @@ function drawNightOverlay(ctx, node, lightSources) {
     nightCanvas.height = h;
   }
   nightCtx.globalCompositeOperation = "source-over";
-  nightCtx.fillStyle = `rgba(18, 16, 46, ${0.5 * n})`;
+  nightCtx.clearRect(0, 0, w, h);
+  nightCtx.fillStyle = `rgba(${NIGHT_TINT}, ${NIGHT_TINT_ALPHA * n})`;
   nightCtx.fillRect(0, 0, w, h);
 
+  // Erase soft pools at each light source. Wide falloff so pools blend into
+  // the moonlight instead of ending in a hard ring.
   nightCtx.globalCompositeOperation = "destination-out";
   for (const src of lightSources) {
     const grad = nightCtx.createRadialGradient(src.x, src.y, 0, src.x, src.y, src.radius);
-    grad.addColorStop(0, "rgba(255,255,255,0.95)");
-    grad.addColorStop(0.6, "rgba(255,255,255,0.6)");
+    grad.addColorStop(0, "rgba(255,255,255,0.9)");
+    grad.addColorStop(0.45, "rgba(255,255,255,0.5)");
     grad.addColorStop(1, "rgba(255,255,255,0)");
     nightCtx.fillStyle = grad;
     nightCtx.fillRect(src.x - src.radius, src.y - src.radius, src.radius * 2, src.radius * 2);
   }
   nightCtx.globalCompositeOperation = "source-over";
 
+  ctx.globalCompositeOperation = "multiply";
   ctx.drawImage(nightCanvas, 0, 0);
+  ctx.globalCompositeOperation = "source-over";
+
+  // Warm glow at lamps so their pools read as lamplight.
+  for (const src of lightSources) {
+    if (!src.warm) continue;
+    const r = src.radius * 0.6;
+    const grad = ctx.createRadialGradient(src.x, src.y, 0, src.x, src.y, r);
+    grad.addColorStop(0, `rgba(255, 205, 130, ${LAMP_GLOW_ALPHA * n})`);
+    grad.addColorStop(1, "rgba(255, 205, 130, 0)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(src.x - r, src.y - r, r * 2, r * 2);
+  }
 }
 
 // Props at least this tall (frame height in px) can occlude characters.

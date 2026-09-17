@@ -36,9 +36,10 @@ Night is not a flat wash. **Interiors are assumed lit** — the player's own lam
 
 For an outdoor node, `drawNightOverlay` builds the darkness on a cached offscreen canvas the size of the viewport:
 
-1. Fill it with the wash, `rgba(18,16,46, 0.5 * nightFactor())`.
+1. Fill it with a moonlight tint, `rgba(120,135,200, 0.85 * nightFactor())`. The layer is later composited with `"multiply"`, so colours darken proportionally and stay readable instead of sinking into a black fog: at full night an unlit tile keeps roughly 55–80% of its brightness per channel, blue-shifted. A first version used a plain 50% indigo alpha wash and read as pitch black between lights; Michael rejected that, see the decision log.
 2. Switch to `globalCompositeOperation = "destination-out"` and fill a soft radial gradient (opaque center fading to transparent) at every **light source** — this erases a circle of darkness rather than drawing anything visible. `destination-out` can't erase more alpha than the wash has, so this needs no separate scaling by `nightFactor()`; during dusk, when the wash is thin, the same erase has proportionally less to remove.
-3. Switch back to `source-over` and composite the whole layer onto the scene in one `drawImage`.
+3. Switch back to `source-over` and composite the whole layer onto the scene with one `drawImage` under `"multiply"`.
+4. Draw a small warm additive pool at each lamp so lamplight reads as light, not merely as "less dark".
 
 Light sources are gathered fresh each frame: every prop whose sprite id is in `LIGHT_PROP_SPRITES` (currently just `lamp`), and every wall segment drawn with the `window` variant (intact glass, not broken, not boarded) — the same one that gets the small decorative warm glow described below. A window's light-punch is registered on whichever side is being rendered, so a lit house carves a lit patch into the yard outside it too, not just a cosmetic glow on the glass.
 

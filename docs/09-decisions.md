@@ -6,6 +6,10 @@ Rulings follow the tiebreaker in `00-vision.md`: what best serves a cozy Habbo-s
 
 ## Decisions
 
+### 2026-09-17 — Night is moonlight, not fog
+
+- **Unlit outdoors at night is a blue moonlight tint, never black.** The first light-punch version used a 50% indigo alpha wash over an already dark palette; Michael: "pitch black outside of lit places is definitely not going to work." Switched the night layer to a lighter tint composited with `multiply`, so colours darken proportionally and stay readable (an unlit tile keeps 55–80% per channel), widened the lit pools with a softer falloff, and added a warm additive glow at lamps. The mechanic (lamps and lit windows are meaningfully brighter) survives; the fog does not. Also matches the vision doc's "never fully black".
+
 ### 2026-09-15 — Night fixes and the light-punch
 
 - **The day/night clock was wrong: it went dark at 3pm.** The phase boundaries were fractions of the cycle (0.45/0.55/0.90) chosen without checking what real hour they landed on — they worked out to roughly 10:48am, 1:12pm, and 9:36pm. Rewrote `clock.js` to define phases directly in real clock hours. Full dark now holds for exactly `23:00–06:00`, Zomboid-style, with a one-hour taper on each side so it isn't an instant cut. New games start at `08:00` instead of midnight, since waking up mid-morning is a better first moment than starting in the dark.
@@ -126,8 +130,9 @@ Values as of the end of milestone 11 (2026-09-14). Tuned only lightly; hands-on 
 | Day / dusk / night / dawn boundaries | day 07:00–22:00, dusk 22:00–23:00, night 23:00–06:00, dawn 06:00–07:00 (was fractions of the cycle that didn't map to sane hours) | `clock.js` |
 | New game start time | 08:00 (was 00:00) | `clock.js` |
 | Brightness: day / night | 1.0 / 0.22 (never full black) | `clock.js` |
-| Night wash max darkening | 50% at full night, outdoor nodes only | `render.js` |
-| Light-punch radius: window / lamp | 70 px / 100 px | `render.js` |
+| Night tint colour / alpha / blend | rgb(120,135,200) / 0.85 × nightFactor / multiply, outdoor nodes only (was a 50% indigo alpha wash: too dark) | `render.js` |
+| Light-punch radius: window / lamp | 95 px / 140 px (was 70 / 100) | `render.js` |
+| Lamp warm glow alpha / radius | 0.22 × nightFactor / 60% of the lamp punch radius | `render.js` |
 | Window glow radius / peak alpha (decorative only) | 20 px / 0.55 × nightFactor | `render.js` |
 | Hunger max / drain | 100, full drain over 600 s (10 min) of continuous play | `entities/player.js` |
 | Starvation damage | 3 hp/s while hunger is 0 | `entities/player.js` |
