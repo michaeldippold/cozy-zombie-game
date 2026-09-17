@@ -29,7 +29,7 @@ Then open http://localhost:8000. The script is a plain static server with cachin
 
 Doors are doorways: walk into the opening and onto the threshold tile to go through. Standing near a door never crosses it.
 
-Debug: `?sheet=<sprite id>&scale=2` on the URL renders a sprite sheet instead of the game. `window.__game` exposes the live state in the console; `window.__game.loop.setPaused(true)` then `window.__game.loop.advance(seconds)` steps time deterministically.
+Debug: `]` skips the clock forward one hour. `?sheet=<sprite id>&scale=2` on the URL renders a sprite sheet instead of the game. `window.__game` exposes the live state in the console; `window.__game.loop.setPaused(true)` then `window.__game.loop.advance(seconds)` steps time deterministically.
 
 ## Documents
 

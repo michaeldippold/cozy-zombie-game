@@ -2,6 +2,7 @@
 
 Usage: python serve.py [port]
 """
+import os
 import sys
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
@@ -11,6 +12,22 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store, must-revalidate")
         self.send_header("Expires", "0")
         super().end_headers()
+
+    def do_POST(self):
+        # Dev only: POST /__screenshot/<name>.png saves the body under screenshots/.
+        if not self.path.startswith("/__screenshot/"):
+            self.send_error(404)
+            return
+        name = os.path.basename(self.path)
+        if not name.endswith(".png"):
+            self.send_error(400)
+            return
+        os.makedirs("screenshots", exist_ok=True)
+        length = int(self.headers.get("Content-Length", "0"))
+        with open(os.path.join("screenshots", name), "wb") as f:
+            f.write(self.rfile.read(length))
+        self.send_response(204)
+        self.end_headers()
 
     def log_message(self, fmt, *args):
         # Keep the console quiet; errors still surface via status codes.

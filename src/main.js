@@ -15,7 +15,7 @@ import { loadItems, loadLoot, getItem } from "./items.js";
 import { nearestWalkable } from "./node.js";
 import { createPlayer, updatePlayer, damagePlayer, autoWalk, cancelAutoWalk } from "./entities/player.js";
 import { createZombie, updateZombie, hearNoise } from "./entities/zombie.js";
-import { renderNode } from "./render.js";
+import { renderNode, setNightTint } from "./render.js";
 import { initHud, updateHud } from "./ui/hud.js";
 import { initOverlay, showGameOver } from "./ui/overlay.js";
 import { initPrompt, updatePrompt, showMessage, updateMessage } from "./ui/prompt.js";
@@ -272,6 +272,11 @@ function hudState() {
 
 function handleCombatInput() {
   if (input.wasPressed("KeyF")) toggleFlashlight();
+  // Debug: ] skips the clock forward one hour, so night can be tested without waiting.
+  if (input.wasPressed("BracketRight")) {
+    clock.update(clock.DAY_LENGTH / 24);
+    showMessage(`Skipped to ${clock.getLabel()}.`);
+  }
   if (input.wasPressed("Digit1")) inventory.equip(inv, "bat");
   if (input.wasPressed("Digit2")) inventory.equip(inv, "pistol");
   const wheel = input.takeWheel();
@@ -483,6 +488,11 @@ async function boot() {
     panel,
     panelHandlers,
     restart: startGame,
+    setNightTint,
+    setHour(h) {
+      const target = (h / 24) * clock.DAY_LENGTH;
+      clock.update(target - (clock.getElapsed() % clock.DAY_LENGTH));
+    },
     transition,
     runAction,
     actionsAt: (sx, sy) => actionsAt(sx, sy, player, node, inv),
