@@ -11,7 +11,7 @@ A Habbo-style isometric cozy diorama game that gets invaded by zombies. Plain HT
 
 ## Docs
 
-`docs/00` vision · `01` constraints and fixed numbers · `02` world model (nodes, edges, sim) · `03` rendering · `04` gameplay · `05` architecture and module ownership · `06` JSON data formats · `07` demo scope · `08` milestones with acceptance criteria · `09` decisions and tunables · `10` neighbourhood · `11` hunger and day/night · `12` flashlight and light map · `13` indoor light and coherent windows · **`14` lighting reference (as built; wins over 11 to 13 where they disagree)** · `15` save and load · `16` Zomboid systems and whether they fit (a menu, not a plan) · `17` moodles · `18` death, turning, and the next survivor · `19` bodies as containers · `20` thirst, water, and body despawn · `21` grid inventory.
+`docs/00` vision · `01` constraints and fixed numbers · `02` world model (nodes, edges, sim) · `03` rendering · `04` gameplay · `05` architecture and module ownership · `06` JSON data formats · `07` demo scope · `08` milestones with acceptance criteria · `09` decisions and tunables · `10` neighbourhood · `11` hunger and day/night · `12` flashlight and light map · `13` indoor light and coherent windows · **`14` lighting reference (as built; wins over 11 to 13 where they disagree)** · `15` save and load · `16` Zomboid systems and whether they fit (a menu, not a plan) · `17` moodles · `18` death, turning, and the next survivor · `19` bodies as containers · `20` thirst, water, and body despawn · `21` grid inventory · `22` melee.
 
 ## Rules that are easy to forget
 
@@ -19,7 +19,7 @@ A Habbo-style isometric cozy diorama game that gets invaded by zombies. Plain HT
 - Multi-tile furniture is per-tile drawables, never one wide sprite.
 - An edge is one object shared by both nodes. Never copy edge state.
 - Windows: zombies in, never out, ground floor only, glass breaks first. Player never uses windows.
-- Aim and melee arcs are in screen space. Hitscan converts to grid once.
+- Aim and melee arcs are in screen space. Hitscan converts to grid once. Melee tests the zombie's body inside the drawn wedge (`combat.inWedge`) and resolves on the click; the visual and the test must stay the same shape.
 - Placeholder art is generated at boot through the same interface as real sprite sheets. Do not wait for art.
 - Never draw UI into the canvas. Never scale in `drawImage`.
 - Light is one function: `light.lightAt(node, gx, gy, player)`. Nothing else computes light. The flashlight is never baked into the light map.

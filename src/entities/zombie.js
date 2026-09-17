@@ -11,7 +11,7 @@ import * as clock from "../clock.js";
 import { containerGrid } from "../items.js";
 import { BAG_COLS, BAG_ROWS } from "../inventory.js";
 
-export const ZOMBIE_SPEED = 1.2; // tiles per second
+export const ZOMBIE_SPEED = 1.0; // tiles per second: Romero shamblers (docs/22)
 export const ZOMBIE_SIGHT = 6; // tiles, in full light
 // In full dark with the player unlit, sight range is this fraction of ZOMBIE_SIGHT.
 export const SIGHT_MIN_FRAC = 0.35;
@@ -22,6 +22,8 @@ export const ZOMBIE_HP = 100;
 export const ZOMBIE_REPATH = 0.3; // seconds
 export const ZOMBIE_RADIUS = 0.3;
 const RISE_TIME = 1.2; // a former survivor getting back up (docs/18)
+const DOWN_TIME = 2.0; // knocked down (docs/22)
+const GET_UP_TIME = 0.6;
 const WANDER_IDLE_MIN = 1.5;
 const WANDER_IDLE_MAX = 4.0;
 const SEPARATION = 0.55;
@@ -62,6 +64,11 @@ export function createZombie(gx, gy, { id = null, hp = ZOMBIE_HP, aggro = false,
       return [[Math.round(this.gx), Math.round(this.gy)]];
     },
     riseTimer: 0,
+    riseDuration: RISE_TIME,
+    downTimer: 0,
+    flashTimer: 0,
+    hitCombo: 0,
+    lastHitAt: -99,
     diedAt: null, // clock time of death; bodies despawn 48 in-game hours later
     id: id || `z${nextId++}`,
     gx,
@@ -87,6 +94,7 @@ export function createZombie(gx, gy, { id = null, hp = ZOMBIE_HP, aggro = false,
   if (rising) {
     z.state = "rise";
     z.riseTimer = RISE_TIME;
+    z.riseDuration = RISE_TIME;
     playAnimation(z.anim, "die", true);
     z.anim.frame = 3;
     z.anim.done = true;
@@ -153,6 +161,7 @@ function separate(z, dt, node, others) {
   let px = 0;
   let py = 0;
   for (const o of others) {
+    if (o.state === "down") continue;
     if (o === z || o.dead) continue;
     const dx = z.gx - o.gx;
     const dy = z.gy - o.gy;
@@ -205,11 +214,32 @@ export function damageZombie(z, amount, knock = null) {
     z.path = [];
     playAnimation(z.anim, "die", true);
     emit("zombieDied", { zombie: z });
+  } else if (z.state === "down") {
+    // Stays down; a hit buys a little more floor time.
+    z.downTimer = Math.max(z.downTimer, 0.8);
   } else {
-    z.state = "hurt";
-    z.hurtTimer = 0.25;
-    playAnimation(z.anim, "hurt", true);
+    stagger(z, 0.25);
   }
+}
+
+export function stagger(z, seconds) {
+  if (z.dead || z.state === "die" || z.state === "down") return;
+  z.state = "hurt";
+  z.hurtTimer = seconds;
+  z.path = [];
+  playAnimation(z.anim, "hurt", true);
+}
+
+// Floor a zombie for DOWN_TIME. Drawn lying (a fall frame), does nothing.
+export function knockDown(z) {
+  if (z.dead || z.state === "die") return;
+  z.state = "down";
+  z.downTimer = DOWN_TIME;
+  z.path = [];
+  z.attackHit = true; // cancels a bite in progress
+  playAnimation(z.anim, "die", true);
+  z.anim.frame = 2;
+  z.anim.done = true;
 }
 
 // Called by combat noise events: aggro if within range.
@@ -239,10 +269,23 @@ export function updateZombie(z, dt, node, player, others) {
   // Getting back up: the fall animation, backwards.
   if (z.state === "rise") {
     z.riseTimer -= dt;
-    z.anim.frame = Math.max(0, Math.min(3, Math.ceil((z.riseTimer / RISE_TIME) * 4) - 1));
+    z.anim.frame = Math.max(0, Math.min(3, Math.ceil((z.riseTimer / z.riseDuration) * 4) - 1));
     if (z.riseTimer <= 0) {
-      z.state = "idle";
+      z.state = z.aggro ? "chase" : "idle";
+      z.repathTimer = 0;
       playAnimation(z.anim, "idle", true);
+    }
+    return;
+  }
+
+  // Knocked down: lying still, then getting up (docs/22-melee.md).
+  if (z.state === "down") {
+    applyKnockback(z, dt, node);
+    z.downTimer -= dt;
+    if (z.downTimer <= 0) {
+      z.state = "rise";
+      z.riseTimer = GET_UP_TIME;
+      z.riseDuration = GET_UP_TIME;
     }
     return;
   }

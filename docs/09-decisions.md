@@ -6,6 +6,14 @@ Rulings follow the tiebreaker in `00-vision.md`: what best serves a cozy Habbo-s
 
 ## Decisions
 
+### 2026-09-17 — Melee rework rulings (Michael)
+
+- **Keep melee simple.** Fix hits, add knockdown, feedback, and a shove on Space (Zomboid's key). A lunge wind-up only if it still feels wrong afterwards.
+- **Romero zombies.** They walked a smidge too fast: 1.2 to 1.0 tiles per second. No variety for now, probably never runners.
+- **Weapon condition stays parked.**
+- **Never** Zomboid's hold-right-click aim swivel that slows you and turns you. **Never** hit locations: the models are not detailed enough. Headshots might someday be a firearms-only thing. A shotgun hitting several zombies needs none of that and is fine.
+- The real complaint was predictability, the same fault the gun had at first: swings that visibly covered a zombie did not land. Cause and fix in `22-melee.md`. Swings now resolve on the click; the drawn wedge is the tested shape; the zombie's body counts, not just its feet.
+
 ### 2026-09-17 — Firearm complexity is at the sweet spot (Michael)
 
 - Michael is very happy with guns as they are: you need rounds in your bag and pulling the trigger uses them. **No magazines to juggle, no manual reloading, no racking, no jams.** Do not add firearm handling detail without being asked. (Matches the "not for this game" verdict in `16`.)
@@ -188,6 +196,12 @@ Values as of the end of milestone 11 (2026-09-14). Tuned only lightly; hands-on 
 
 | Tunable | Value | Where |
 |---|---|---|
+| Bat damage / range / arc / knockback / cooldown | 34 / 1.35 tiles / ±60° / 0.8 / 0.5 s | `items.json` |
+| Point blank / knockdown chance / combo hits / finisher | 0.55 tiles / 30% / 3 / ×2 | `combat.js` |
+| Shove range / arc / knockback / stagger / knockdown / stamina / cooldown | 1.0 / ±50° / 1.6 / 0.6 s / 25% / 5 / 0.45 s | `combat.js` |
+| Hit-stop hit / kill, kick, flash | 45 / 90 ms, 3 px for 80 ms, 90 ms | `combat.js` |
+| Zombie walk speed | 1.0 tiles/s | `zombie.js` |
+| Knockdown floor time / get-up time | 2.0 s / 0.6 s | `zombie.js` |
 | Backpack grid | 6x4 | `inventory.js` |
 | Item sizes, container grids | see `21-grid-inventory.md` | `items.json`, `loot.json` |
 | Thirst drain / parched threshold / parched regen / dehydration damage | 100 per 420 s / 15 / ×0.5 / 3 hp per s | `player.js` |

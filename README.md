@@ -25,6 +25,7 @@ Seven connected dioramas (a house, its yard, a street, a shop, a two-storey hous
 | WASD / arrows | Move (diagonal keys walk along the room's axes) |
 | Mouse | Aim; left click attacks with the equipped weapon |
 | Shift | Sprint while moving (drains stamina) |
+| Space | Shove: pushes zombies back, sometimes floors them. A hit on a floored zombie is a finisher |
 | 1 / 2 / wheel | Switch between bat and pistol |
 | F | Flashlight on/off (when carrying one). A beam that follows the mouse; it lights zombies up and gives you away |
 | Right click | Context menu with every action on the target: pick up, search, board, go through a door, walk here. Out of range actions auto-walk first |
@@ -65,6 +66,7 @@ Read them in order the first time. After that, `docs/00-vision.md` is the tiebre
 | [18-death-and-survivors.md](docs/18-death-and-survivors.md) | What happens when you die: turning, your former self, the next survivor. |
 | [19-bodies.md](docs/19-bodies.md) | Dead zombies are searchable containers with their own loot table. |
 | [20-thirst.md](docs/20-thirst.md) | Thirst, water bottles with a fill level, sinks, and body despawn. |
+| [22-melee.md](docs/22-melee.md) | Why swings missed, and melee as it is now: knockdown, finishers, shove, feedback. |
 | [21-grid-inventory.md](docs/21-grid-inventory.md) | The grid inventory: sizes, rules, and controls. |
 
 The original brainstorm this was derived from is `iso-zombie-demo-spec.md` at the repo root. It is superseded by `docs/` and kept for reference only.

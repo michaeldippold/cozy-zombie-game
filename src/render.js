@@ -341,7 +341,7 @@ function floorPath(c, node) {
 // Offscreen canvas for tinted silhouettes.
 let silCanvas = null;
 let silCtx = null;
-function drawSilhouette(ctx, d) {
+function drawSilhouette(ctx, d, color = null, alpha = SILHOUETTE_ALPHA) {
   const { sheet, entity: e } = d;
   const f = d.rect;
   if (!silCanvas) {
@@ -357,9 +357,9 @@ function drawSilhouette(ctx, d) {
   silCtx.clearRect(0, 0, silCanvas.width, silCanvas.height);
   drawCharacter(silCtx, sheet, e.anim, e.facing, sheet.anchor[0], sheet.anchor[1]);
   silCtx.globalCompositeOperation = "source-in";
-  silCtx.fillStyle = SILHOUETTE_COLORS[e.kind] || "#ffffff";
+  silCtx.fillStyle = color || SILHOUETTE_COLORS[e.kind] || "#ffffff";
   silCtx.fillRect(0, 0, f.w, f.h);
-  ctx.globalAlpha = SILHOUETTE_ALPHA;
+  ctx.globalAlpha = alpha;
   ctx.drawImage(silCanvas, 0, 0, f.w, f.h, f.x, f.y, f.w, f.h);
   ctx.globalAlpha = 1;
 }
@@ -425,6 +425,8 @@ function entityDrawables(entities, out, node, player) {
       revealable: e.kind !== "zombie" || barVisible(e),
       draw(ctx) {
         drawCharacter(ctx, sheet, e.anim, e.facing, x, y);
+        // A hit flashes the zombie white for a moment (docs/22).
+        if (e.flashTimer > 0) drawSilhouette(ctx, this, "#ffffff", 0.85);
         if (e.kind === "zombie" && !e.dead && e.state !== "die" && barVisible(e)) drawHealthBar(ctx, x, y - 56, e.hp / e.maxHp);
       },
     });

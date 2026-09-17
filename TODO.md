@@ -4,13 +4,13 @@ Working checklist. A new session should read `CLAUDE.md`, then this file, then t
 
 ## Status
 
-- **Current milestone:** 23 complete (2026-09-17): grid inventory for the player, containers, and bodies, with drag and drop, rotation, and right-click item menus (`docs/21-grid-inventory.md`). Weight is gone. Earlier the same day: 22 thirst, 21 body despawn, 20 bodies as containers, 19 death and survivors, 18 moodles, 17 save and load.
+- **Current milestone:** 24 complete (2026-09-17): melee that lands, knockdown and finishers, shove on Space, hit feedback, slower zombies (`docs/22-melee.md`). Earlier the same day: 23 grid inventory, 22 thirst, 21 body despawn, 20 bodies as containers, 19 death and survivors, 18 moodles, 17 save and load.
 - **What exists:** seven-node neighbourhood with gates and stairs (M12); hunger and a day/night clock (M13); flashlight and light-aware zombie sight (M14); per-node light map with shadows (M15); room lights, candles, coherent windows, daylight through openings (M16); one-slot local autosave, start screen, Escape pause menu (M17); moodles for slow needs (M18); death turns you and a new survivor joins the same world (M19); bodies as containers with a loot table (M20) that despawn after 48 h (M21); thirst, fillable bottles, sinks and a fountain (M22); grid inventory with drag and drop, no weight (M23). Right-click menus with auto-walk, screen-space gun (no reloading or jams, by ruling), doorway thresholds, stamina-costed melee, plank refunds.
 - **Last completed task (2026-09-17):** Milestone 17 built and verified by script. Also wrote `docs/16-zomboid-systems-fit.md`, a survey of Project Zomboid systems with a fit verdict for each; it is the menu for choosing the next survival systems and nothing in it is built.
 - **History:** each milestone doc (10 to 13) ends with its scripted acceptance results; `docs/09-decisions.md` has every ruling with its reason, newest first, including the ones that were reversed.
 - **Blocked on:** nothing
 - **Next, in Michael's order:** sleep (tired moodle, beds, time skip, waking to break-ins; see section 4 of `docs/16`), then furniture. Furniture ruling already made (see `docs/09`): small pieces are grid items; any single large piece is carried in both hands with no sprint and no fighting, and no other penalty. **Tabled by Michael:** water and power shutoff, until the moment-to-moment game is fuller. Parked: flashlight battery, candle burn time, daylight pooled at windows, peeking through windows. Later: Tiled importer, real art last.
-- **Notes for next session:** Michael has flagged melee combat as the weakest part of the game now that everything else has been improved; a design conversation about it comes before more survival systems. Run with `python serve.py 8000` (a no-cache static server; plain `http.server` serves stale modules). For scripted tests in a browser console: the game now boots to a start screen, so call `window.__game.newGame()` first, then `window.__game.loop.setPaused(true)`, then drive time with `window.__game.loop.advance(seconds)`; the game otherwise runs in real time between commands. `?sheet=<id>&scale=2` on the URL renders a sprite sheet instead of the game. Interaction (E), prompt, pickups, container search, and plank boarding were built during milestone 8 in `src/interact.js` and `src/ui/prompt.js`; milestone 9 only needs the panel, container view, use/drop/equip, and food.
+- **Notes for next session:** Melee was reworked in M24; if it still feels wrong in play, the lunge wind-up in `docs/22` is the held-back next step. Run with `python serve.py 8000` (a no-cache static server; plain `http.server` serves stale modules). For scripted tests in a browser console: the game now boots to a start screen, so call `window.__game.newGame()` first, then `window.__game.loop.setPaused(true)`, then drive time with `window.__game.loop.advance(seconds)`; the game otherwise runs in real time between commands. `?sheet=<id>&scale=2` on the URL renders a sprite sheet instead of the game. Interaction (E), prompt, pickups, container search, and plank boarding were built during milestone 8 in `src/interact.js` and `src/ui/prompt.js`; milestone 9 only needs the panel, container view, use/drop/equip, and food.
 
 Milestone acceptance criteria live in [docs/08-milestones.md](docs/08-milestones.md). Fixed numbers live in [docs/01-constraints.md](docs/01-constraints.md). Tunable starting values live in [docs/09-decisions.md](docs/09-decisions.md).
 
@@ -113,6 +113,15 @@ Milestone acceptance criteria live in [docs/08-milestones.md](docs/08-milestones
 - [x] Occluders draw at alpha 0.4.
 - [x] Silhouette pass via an offscreen canvas with `source-in`.
 - [x] Verify acceptance in the yard behind trees with player and a zombie together.
+
+## Milestone 24 — Melee that lands (see docs/22-melee.md)
+
+- [x] `combat.js`: `inWedge` tests the body (feet to chest samples, screen-space arc from the chest, grid reach from the feet with bounded down-screen slack, point blank always). Swings resolve on the click. The drawn wedge is the tested shape.
+- [x] Knockdown (30%, guaranteed on the third hit in a row), 2 s on the floor, finisher double damage. `zombie.js` `down` state, `knockDown`, `stagger`; get-up reuses the rise animation.
+- [x] Shove on Space: push, stagger, 25% knockdown, no damage.
+- [x] Feedback: hit-stop, screen kick, white flash, thud and crunch sounds.
+- [x] Zombie speed 1.2 to 1.0. Bat range 1.35, knockback 0.8.
+- [x] Verify acceptance in docs/22 (scripted and passed 2026-09-17).
 
 ## Milestone 23 — Grid inventory (see docs/21-grid-inventory.md)
 

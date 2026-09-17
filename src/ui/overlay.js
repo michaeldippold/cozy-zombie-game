@@ -48,6 +48,7 @@ export function showStartScreen({ save, onContinue, onNew }) {
       <table class="overlay-controls">
         <tr><td>WASD</td><td>Move</td><td>Mouse</td><td>Aim, left click attacks</td></tr>
         <tr><td>Shift</td><td>Sprint</td><td>Right click</td><td>Everything you can do to a thing</td></tr>
+        <tr><td>Space</td><td>Shove</td><td>R</td><td>Rotate an item while dragging</td></tr>
         <tr><td>E</td><td>Pick up, search, light switch</td><td>Tab</td><td>Backpack</td></tr>
         <tr><td>F</td><td>Flashlight</td><td>1 / 2</td><td>Bat / pistol</td></tr>
         <tr><td>Esc</td><td>Pause, save and quit</td><td></td><td></td></tr>

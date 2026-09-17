@@ -85,6 +85,17 @@ export const sfx = {
     tone(220, 0.06, { type: "square", gain: 0.12, slide: -40 });
     setTimeout(() => tone(200, 0.06, { type: "square", gain: 0.12, slide: -40 }), 90);
   },
+  thud() {
+    tone(70, 0.18, { type: "sine", gain: 0.3, slide: -40 });
+    noiseBurst(0.1, { freq: 300, q: 1, gain: 0.15 });
+  },
+  crunch() {
+    noiseBurst(0.14, { freq: 1600, q: 0.7, gain: 0.25 });
+    tone(120, 0.12, { type: "square", gain: 0.14, slide: -90 });
+  },
+  shove() {
+    noiseBurst(0.08, { freq: 500, q: 1.5, gain: 0.12 });
+  },
   eat() {
     tone(440, 0.1, { type: "sine", gain: 0.1, slide: 120 });
   },

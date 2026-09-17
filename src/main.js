@@ -510,6 +510,7 @@ function handleCombatInput() {
   if (wheel !== 0) inventory.cycleWeapon(inv, wheel > 0 ? 1 : -1);
   const dismissed = menu.tookClick();
   if (input.mouseLeftPressed() && !dismissed && !menu.isMenuOpen()) combat.tryAttack(player, inv, node, zombies);
+  if (input.wasPressed("Space") && !menu.isMenuOpen()) combat.tryShove(player, node, zombies);
 }
 
 // ---- loop hooks ----
@@ -517,6 +518,12 @@ function handleCombatInput() {
 function update(dt) {
   if (gameOver) {
     afterlife(dt);
+    input.endStep();
+    return;
+  }
+  // Hit-stop: the world holds for a few frames after a melee hit (docs/22).
+  if (combat.feedback.hitstop > 0) {
+    combat.feedback.hitstop = Math.max(0, combat.feedback.hitstop - dt);
     input.endStep();
     return;
   }
@@ -531,7 +538,10 @@ function update(dt) {
   }
   combat.updateCombat(player, inv, node, zombies, dt);
   const others = [player, ...zombies];
-  for (const z of zombies) updateZombie(z, dt, node, player, others);
+  for (const z of zombies) {
+    z.flashTimer = Math.max(0, (z.flashTimer || 0) - dt);
+    updateZombie(z, dt, node, player, others);
+  }
   checkTransitions();
 
   handleInteractionInput();
@@ -568,8 +578,14 @@ function simTick(dt) {
 function render() {
   ctx.fillStyle = "#1c1c24";
   ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+  // Screen kick after a melee hit: the whole world jolts in the swing direction.
+  const k = combat.feedback.kick;
+  const kickAmt = k.ttl > 0 ? k.ttl / combat.KICK_TIME : 0;
+  ctx.save();
+  ctx.translate(Math.round(k.x * kickAmt), Math.round(k.y * kickAmt));
   renderNode(ctx, node, death?.turned ? zombies : [player, ...zombies], { wallVariantAt: world.wallVariantAt, player });
   combat.renderEffects(ctx);
+  ctx.restore();
 
   debugEl.textContent =
     `fps ${loop.getFps()}\n` +
@@ -717,7 +733,12 @@ function startGame() {
   // Placeholder sounds.
   events.on("noise", (ev) => (ev.source === "glass" ? sfx.glass() : sfx.gunshot()));
   events.on("meleeSwing", () => sfx.swing());
-  events.on("meleeHit", () => sfx.hit());
+  events.on("meleeHit", ({ kills, knockdowns, finishers }) => {
+    if (finishers) sfx.crunch();
+    else if (knockdowns) sfx.thud();
+    else sfx.hit();
+  });
+  events.on("shove", ({ hits }) => (hits ? sfx.thud() : sfx.shove()));
   events.on("zombieDied", () => sfx.die());
   events.on("pickedUp", () => sfx.pickup());
   events.on("dryFire", () => sfx.dry());

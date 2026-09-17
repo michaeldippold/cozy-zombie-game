@@ -8,6 +8,7 @@
 - Health. Death shows a game-over overlay with a restart button. Restart reloads the world state from data.
 - Walk speed is faster than zombie walk speed.
 - **Death** is not the end of the world: the character turns and wanders off carrying their backpack, and a new survivor arrives elsewhere in the same world. See `18-death-and-survivors.md`.
+- **Melee** (`22-melee.md`): a swing resolves on the click against the zombie's body inside a drawn wedge; hits can knock down, a hit on a downed zombie is a finisher; Space shoves. Hit-stop, a screen kick, and a flash sell every hit.
 - **Hunger** drains continuously. Only food restores it. At zero the player starves: health drains steadily until they eat or die. See `docs/11-hunger-and-night.md`.
 
 ## Weapons
