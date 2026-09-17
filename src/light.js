@@ -1,7 +1,7 @@
 // Light as a game quantity: how lit is a grid position, 0..1? Read by zombie
-// sight, the sim, and the renderer. Milestone 14 answers analytically from a
-// short list of sources; milestone 15 will answer from a per-tile map with the
-// same signature. See docs/12-lighting.md.
+// sight, the sim, and the renderer. Static sources (lamps, lit windows) live in
+// a cached per-node map with shadows; the flashlight is evaluated exactly at
+// query time. See docs/12-lighting.md.
 
 import * as iso from "./iso.js";
 import * as clock from "./clock.js";
@@ -9,8 +9,11 @@ import { blocksShot } from "./node.js";
 import { lineOfSight } from "./pathfind.js";
 import { wallVariantAt } from "./world.js";
 
-export const LAMP_RADIUS = 2.4; // tiles
-export const WINDOW_RADIUS = 1.8; // tiles
+export const LAMP_RADIUS = 4.5; // tiles
+export const WINDOW_RADIUS = 3.0; // tiles
+export const MAP_RES = 2; // light cells per tile, so shadow edges are soft
+export const MAP_PAD = MAP_RES; // one tile of replicated border for clean filtering
+const CORE_GAIN = 1.4; // the inner part of a pool is fully lit before it falls off
 export const FLASHLIGHT_SELF_LIGHT = 0.5; // holding a torch makes you a visible point
 export const LIGHT_PROP_SPRITES = new Set(["lamp"]);
 export const BEAM_RAYS = 28;
@@ -93,14 +96,130 @@ export function inBeam(node, player, gx, gy) {
   return lineOfSight(node, player.gx, player.gy, gx, gy);
 }
 
-// Light level at a grid position, 0..1.
+// ---- static light map ----
+
+const staticCache = new Map(); // node id -> { sig, cw, ch, contrib, canvas }
+
+function lightSignature(node) {
+  return staticLights(node).map((l) => `${l.kind}:${l.gx},${l.gy}`).join("|");
+}
+
+// Is the straight path from a source to a point clear of shot-blocking tiles?
+// The tile of the source and the tile of the target never block, so a tree is
+// lit on its lit side and dark behind it.
+function clearPath(node, ax, ay, bx, by) {
+  const sx = Math.round(ax);
+  const sy = Math.round(ay);
+  const tx = Math.round(bx);
+  const ty = Math.round(by);
+  const steps = Math.ceil(Math.hypot(bx - ax, by - ay) * 4);
+  for (let i = 1; i < steps; i++) {
+    const t = i / steps;
+    const x = Math.round(ax + (bx - ax) * t);
+    const y = Math.round(ay + (by - ay) * t);
+    if ((x === sx && y === sy) || (x === tx && y === ty)) continue;
+    if (blocksShot(node, x, y)) return false;
+  }
+  return true;
+}
+
+function cellToGrid(i) {
+  return (i + 0.5) / MAP_RES - 0.5;
+}
+
+function buildStatic(node, sig) {
+  const cw = node.width * MAP_RES;
+  const ch = node.height * MAP_RES;
+  const contrib = new Float32Array(cw * ch);
+  const lights = staticLights(node);
+  for (let j = 0; j < ch; j++) {
+    const gy = cellToGrid(j);
+    for (let i = 0; i < cw; i++) {
+      const gx = cellToGrid(i);
+      let c = 0;
+      for (const l of lights) {
+        const d = Math.hypot(gx - l.gx, gy - l.gy);
+        if (d >= l.radius) continue;
+        if (!clearPath(node, l.gx, l.gy, gx, gy)) continue;
+        c += Math.min(1, CORE_GAIN * (1 - d / l.radius));
+      }
+      contrib[j * cw + i] = Math.min(1, c);
+    }
+  }
+
+  // The same data as a tiny image: alpha = how much darkness to remove. The
+  // renderer draws it through the iso transform with smoothing on.
+  const w = cw + MAP_PAD * 2;
+  const h = ch + MAP_PAD * 2;
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  const img = ctx.createImageData(w, h);
+  for (let y = 0; y < h; y++) {
+    const j = Math.max(0, Math.min(ch - 1, y - MAP_PAD));
+    for (let x = 0; x < w; x++) {
+      const i = Math.max(0, Math.min(cw - 1, x - MAP_PAD));
+      const o = (y * w + x) * 4;
+      img.data[o] = 255;
+      img.data[o + 1] = 255;
+      img.data[o + 2] = 255;
+      img.data[o + 3] = Math.round(contrib[j * cw + i] * 255);
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  return { sig, cw, ch, contrib, canvas };
+}
+
+// Validate (and rebuild if needed) the static map of a node. Cheap when unchanged.
+export function getStatic(node) {
+  if (!node.outdoor) return null;
+  const sig = lightSignature(node);
+  let entry = staticCache.get(node.id);
+  if (!entry || entry.sig !== sig) {
+    entry = buildStatic(node, sig);
+    staticCache.set(node.id, entry);
+  }
+  return entry;
+}
+
+// Call once per logic step for the current node so a changed window rebuilds promptly.
+export function update(node) {
+  getStatic(node);
+}
+
+export function resetCache() {
+  staticCache.clear();
+}
+
+// Bilinear sample of the static contribution at a grid position, 0..1.
+export function staticContribAt(node, gx, gy) {
+  const st = getStatic(node);
+  if (!st) return 0;
+  const { cw, ch, contrib } = st;
+  const u = Math.max(0, Math.min(cw - 1, (gx + 0.5) * MAP_RES - 0.5));
+  const v = Math.max(0, Math.min(ch - 1, (gy + 0.5) * MAP_RES - 0.5));
+  const i0 = Math.floor(u);
+  const j0 = Math.floor(v);
+  const i1 = Math.min(cw - 1, i0 + 1);
+  const j1 = Math.min(ch - 1, j0 + 1);
+  const fu = u - i0;
+  const fv = v - j0;
+  const a = contrib[j0 * cw + i0] * (1 - fu) + contrib[j0 * cw + i1] * fu;
+  const b = contrib[j1 * cw + i0] * (1 - fu) + contrib[j1 * cw + i1] * fu;
+  return a * (1 - fv) + b * fv;
+}
+
+// The erase image and how it maps to the grid, for the renderer.
+export function getRenderLayer(node) {
+  const st = getStatic(node);
+  return st ? { canvas: st.canvas, res: MAP_RES, pad: MAP_PAD } : null;
+}
+
+// Light level at a grid position, 0..1: ambient + static map + flashlight.
 export function lightAt(node, gx, gy, player = null) {
   if (!node.outdoor) return 1;
-  let l = clock.getBrightness();
-  for (const s of staticLights(node)) {
-    const d = Math.hypot(gx - s.gx, gy - s.gy);
-    if (d < s.radius) l += 1 - d / s.radius;
-  }
+  let l = clock.getBrightness() + staticContribAt(node, gx, gy);
   if (beamOf(player)) {
     if (Math.hypot(gx - player.gx, gy - player.gy) < 0.6) l += FLASHLIGHT_SELF_LIGHT;
     else if (inBeam(node, player, gx, gy)) l += 1;

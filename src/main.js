@@ -293,6 +293,7 @@ function update(dt) {
     return;
   }
   clock.update(dt);
+  light.update(node);
   handleCombatInput();
   updatePlayer(player, dt, node);
   checkGameOver(player.starving ? "starvation" : "zombie");
@@ -408,6 +409,7 @@ function startGame() {
   world.loadWorld({ nodes: data.nodes, edges: data.edges });
   sim.reset();
   clock.reset();
+  light.resetCache();
   node = world.getNode(data.start);
   world.setCurrent(node.id);
   centerNode(node);

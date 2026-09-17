@@ -54,25 +54,30 @@ All checks below scripted and passed on 2026-09-17 (yard, 01:00). Lesson for fut
 
 The analytic model can't cast shadows and can't be read cheaply by anything that wants "light on this tile" for many tiles at once. A per-tile map makes light a first-class quantity: the renderer draws from it, zombies read it, the sim can read it, and future systems (stealth, sleep, a generator) get it for free.
 
-### Model
+### Model (as built)
 
-- `lightMap` per node: `width × height` floats, plus the threshold tiles.
-- Recomputed when it could have changed: on node entry, on a light source changing (window boarded or broken), on the flashlight moving or toggling, and on the clock advancing past a brightness step. In practice: cheaply, every sim tick, plus every frame the flashlight is on.
-- For each source, for each tile within its radius: line of sight from source tile to target tile through the shot-blocking grid (the existing `lineOfSight`), falloff `1 - d / radius`. Solid-but-low props (tables, cars) block walking, not light; only `blocksShots` casts shadows. Add ambient, clamp.
-- `lightAt` becomes a bilinear read from the map. Same signature, same callers.
+- **Static light is a cached map per node**, at two cells per tile so shadows have soft edges. For every cell, each static source (lamp, intact window) adds `min(1, 1.4 × (1 − d / radius))` if the path from the source to the cell is clear of shot-blocking tiles. The source's own tile and the target's own tile never block, so a tree is lit on its lit side and dark behind. Lamps reach 4.5 tiles, windows 3.0: big soft pools with room for shadows to read. (5.5 and 3.5 were tried first; they lit nearly the whole street and undercut the darkness level chosen the same day.)
+- The cache is keyed by the node's light signature (which sources exist, where). Boarding or breaking a window changes the signature and the map rebuilds. `light.update(node)` validates it once per step.
+- **The flashlight is not in the map.** It is evaluated exactly at query time (`inBeam`), which is cheaper than re-marching a cone across the map every frame and keeps the drawn beam, the sight test, and the light value in perfect agreement.
+- `lightAt(node, gx, gy, player)` = clock ambient + a bilinear sample of the static map + the beam and self-light terms, clamped. Same signature as milestone 14; no caller changed.
+- Interiors have no map: light is 1.
 
-### Rendering
+### Rendering (as built)
 
-The night layer becomes one diamond per tile with alpha from `(1 - light)` under the same multiply tint, drawn back to front. Stepped per-tile lighting suits the pixel look; if it reads too blocky, the step up is per-vertex gradients (each diamond filled with a gradient from its corner lights), which is still just canvas fills. The flashlight beam keeps its polygon draw on top; its light contribution is also in the map, so zombies and the picture agree.
+The static map is also the picture. It is written into a tiny image, one pixel per cell with alpha = how much darkness to remove, and drawn onto the night layer under `destination-out` through the isometric transform with image smoothing on. The browser's bilinear filtering does the interpolation, so light pools and shadow edges come out smooth with no per-pixel work and no blocky tiles.
+
+Three things stay in screen space on purpose: a small pool at each lit window so the wall face around it glows (the map only covers the floor), the warm glow at lamps, and the player's night-vision pool, which is vision, not light. The flashlight keeps its crisp ray-cast polygon.
 
 ### What it unlocks
 
 - Shadows: a lamp behind a car leaves the far side dark. A lit window lights the grass in front, not the hedge behind.
-- The sim's "light through windows" weight can use the actual light on the window's yard tile instead of a flat bonus.
+- The sim's "light through windows" weight now uses the actual static light on the window's outdoor tile. Board the window and the pull goes away with the glow.
 - Peek-through-window later: the interior light map is what you'd see.
 - A generator or candles as data: a prop with a light radius.
 
 ### Acceptance
+
+All four checks scripted and passed on 2026-09-17. Measured in the yard at 01:00: light contribution 0.10 behind the tree versus 0.34 at the same distance in the open. A player in that shadow (light 0.32) is ignored by a zombie 4.8 tiles away with clear line of sight; one step into the lamp pool (light 1.0) at the same distance and it chases. A boarded window's tile drops from 1.0 to 0 and back when unboarded, so the sim's window pull follows the boards. The map builds in under 1 ms, a `lightAt` query costs about 2 microseconds, and a full update plus render at night with the flashlight on is under half a millisecond.
 
 - A tile behind a `blocksShots` prop relative to a lamp is darker than the same distance in the open.
 - Zombie sight uses the map: standing just inside a shadow at night is meaningfully safer than a step into the light.
@@ -81,4 +86,8 @@ The night layer becomes one diamond per tile with alpha from `(1 - light)` under
 
 ### Cost
 
-Roughly a day. The ray march exists from milestone 14; the rest is a loop, a cache, and a renderer swap.
+Estimated at a day; it took an afternoon, because two planned pieces turned out unnecessary. The flashlight never needed to be in the map (exact evaluation at query time is cheaper and always agrees with the drawn beam), and the renderer needed no per-tile diamond drawing (one tiny image through the iso transform, smoothed by the browser).
+
+### Testing note
+
+When scripting a node transition in a test, move the player off the threshold tile before advancing time, or the door's re-arm guard sends them straight back.

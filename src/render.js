@@ -87,15 +87,18 @@ function drawWindowGlow(ctx, cx, cy) {
   ctx.fillRect(cx - 20, gy - 20, 40, 40);
 }
 
-// Radii (screen px) of the light-punch a source carves into the night wash.
-const WINDOW_LIGHT_RADIUS = 95;
+// Floor lighting comes from the light map (light.js). These screen-space pools
+// remain only for what the floor map cannot cover: the wall face around a lit
+// window, and the anchor point for the warm glow of a lamp.
+const WINDOW_LIGHT_RADIUS = 60;
 const LAMP_LIGHT_RADIUS = 140;
 // Night is dark but never black: things in the open are faintly visible, and
 // light sources make them meaningfully brighter. The layer is composited with
 // "multiply" so colours darken proportionally; at full night a far, unlit tile
 // keeps roughly 15-35% of its brightness per channel, blue-shifted: dark
 // enough that a still zombie and a small tree are hard to tell apart.
-// Previous step, the "happy medium" candidate: "38, 44, 95" at 0.95.
+// Chosen by eye on 2026-09-17 (docs/09-decisions.md). Not settled law: try
+// other levels live with __game.setNightTint(tint, alpha).
 let NIGHT_TINT = "30, 35, 82";
 let NIGHT_TINT_ALPHA = 0.96;
 
@@ -208,10 +211,35 @@ function drawNightOverlay(ctx, node, lightSources, player) {
     nightCtx.fillRect(o.x - r, o.y + 10 - r, r * 2, r * 2);
   }
 
-  // Erase soft pools at each light source. Wide falloff so pools blend into
-  // the moonlight instead of ending in a hard ring.
+  // Floor light with shadows: the cached static map, one pixel per light cell,
+  // drawn through the iso transform. Image smoothing does the interpolation.
+  const layer = light.getRenderLayer(node);
+  if (layer) {
+    const org = iso.getOrigin();
+    // Clip to the floor diamond so the padded border of the map never lights
+    // the void outside the node.
+    const c0 = iso.toScreen(-0.5, -0.5);
+    const c1 = iso.toScreen(node.width - 0.5, -0.5);
+    const c2 = iso.toScreen(node.width - 0.5, node.height - 0.5);
+    const c3 = iso.toScreen(-0.5, node.height - 0.5);
+    nightCtx.save();
+    poly(nightCtx, [[c0.x, c0.y], [c1.x, c1.y], [c2.x, c2.y + SLAB], [c3.x, c3.y + SLAB]]);
+    nightCtx.clip();
+    nightCtx.globalCompositeOperation = "destination-out";
+    nightCtx.imageSmoothingEnabled = true;
+    nightCtx.imageSmoothingQuality = "high";
+    nightCtx.setTransform(iso.HW, iso.HH, -iso.HW, iso.HH, org.x, org.y);
+    nightCtx.translate(-0.5, -0.5);
+    nightCtx.scale(1 / layer.res, 1 / layer.res);
+    nightCtx.translate(-layer.pad, -layer.pad);
+    nightCtx.drawImage(layer.canvas, 0, 0);
+    nightCtx.restore();
+  }
+
+  // Screen-space pools for wall faces around lit windows only.
   nightCtx.globalCompositeOperation = "destination-out";
   for (const src of lightSources) {
+    if (src.warm) continue; // lamps light the floor through the map
     const grad = nightCtx.createRadialGradient(src.x, src.y, 0, src.x, src.y, src.radius);
     grad.addColorStop(0, "rgba(255,255,255,0.9)");
     grad.addColorStop(0.45, "rgba(255,255,255,0.5)");

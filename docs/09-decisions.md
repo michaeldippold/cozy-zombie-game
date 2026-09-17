@@ -6,13 +6,22 @@ Rulings follow the tiebreaker in `00-vision.md`: what best serves a cozy Habbo-s
 
 ## Decisions
 
+### 2026-09-17 — Milestone 15, light map with shadows
+
+- **Static light is a cached map; the flashlight is not in it.** Lamps and lit windows are baked per node at two cells per tile with line-of-sight shadows, rebuilt only when the set of sources changes (a window boarded or broken). The beam is evaluated exactly at query time. That keeps the drawn beam, the sight test, and the light value in agreement and avoids re-marching a cone every frame.
+- **The map is also the picture.** One pixel per cell, alpha = darkness to remove, drawn through the isometric transform with image smoothing. Smooth pools and soft shadow edges with no per-pixel code and no blocky tiles. Clipped to the floor diamond so the padded border never lights the void.
+- **Light lies on the floor; walls keep a small screen-space pool.** The map covers the ground plane only, so the glow on the wall face around a lit window stays a small screen-space erase. The player night-vision pool also stays screen-space: it is vision, not light.
+- **The sim reads real light.** The night pull toward a window is scaled by the static light on that window tile outdoors. Board the window and both the glow and the pull go away.
+- **Radii 4.5 (lamp) and 3.0 (window) tiles.** Large enough for shadows to read, small enough that a street with two lamps still has dark stretches.
+
 ### 2026-09-17 — Darker night with a personal visibility radius
 
 - **The flashlight has to be needed, so the dark got darker, but never black.** With the moonlight tint at 55–80% brightness the torch was a decoration: Michael could see every corner without it. Far, unlit tiles now keep roughly 35–60% per channel: things out there are faintly visible, and light makes them meaningfully brighter.
 - **Rejected: hiding zombies in the dark.** I proposed not drawing zombies on unlit tiles. Michael's objection stands: if the tree in the corner is visible but a zombie blips into existence when it reaches light, it reads as spawning, not as revealed. Everything in the dark dims together.
 - **The player has inherent night vision: a wide, weak, gradual lift around them.** About three tiles, 42% of the darkness removed at the centre, long smooth falloff. Deliberately too weak and too soft-edged to read as a spotlight following you. Visual only; zombie sight does not use it.
 - **Second pass, same day: darker again, and the dark stops giving zombies away.** Michael's target: not 100% certain whether the shape in the far corner is a tree or a zombie. Far unlit tiles now keep about 19–40% per channel. Three tells were removed for zombies that are neither lit (light ≥ 0.45 on their tile) nor within 3 tiles: the red health bar, the x-ray occlusion silhouette, and the fade of the prop they stand behind. All three were making a zombie in the dark easier to spot than one in daylight.
-- **Per-tile lighting (milestone 15) comes after this is settled**, and inherits these levels.
+- **Locked in, for now: tint rgb(30,35,82) at 0.96.** Michael compared two adjacent steps side by side and picked the darker: the far corner is "genuinely dark but not completely unseeable", and dark enough that a flashlight makes sense. Explicitly not settled law. `__game.setNightTint(tint, alpha)` and the `]` clock-skip key exist so it can be re-judged in a minute whenever art, monitors, or the light map change the picture.
+- **Per-tile lighting (milestone 15) inherits these levels.**
 
 ### 2026-09-17 — Milestone 14, flashlight and light-aware zombies
 
@@ -147,12 +156,13 @@ Values as of the end of milestone 11 (2026-09-14). Tuned only lightly; hands-on 
 | Day / dusk / night / dawn boundaries | day 07:00–22:00, dusk 22:00–23:00, night 23:00–06:00, dawn 06:00–07:00 (was fractions of the cycle that didn't map to sane hours) | `clock.js` |
 | New game start time | 08:00 (was 00:00) | `clock.js` |
 | Brightness: day / night | 1.0 / 0.22 (never full black) | `clock.js` |
-| Night tint colour / alpha / blend | rgb(38,44,95) / 0.95 × nightFactor / multiply, outdoor nodes only. History: 50% indigo alpha wash (too black), rgb(120,135,200) at 0.85 (too readable), rgb(70,80,140) at 0.9 (still certain what was out there) | `render.js` |
+| Night tint colour / alpha / blend | **rgb(30,35,82) / 0.96** × nightFactor / multiply, outdoor nodes only (chosen by eye 2026-09-17, revisitable). History: 50% indigo alpha wash (too black), rgb(120,135,200) at 0.85 (too readable), rgb(70,80,140) at 0.9 (still certain what was out there), rgb(38,44,95) at 0.95 (the runner-up) | `render.js` |
 | Zombie bar / silhouette / occluder-fade visibility | only if light on its tile ≥ 0.45 or within 3 tiles of the player | `render.js` |
 | Player night-vision pool radius / centre strength | 190 px / 0.42 of the darkness removed, long falloff | `render.js` |
-| Light-punch radius: window / lamp | 95 px / 140 px (was 70 / 100) | `render.js` |
+| Screen-space wall pool at lit windows | 60 px (floor light comes from the map) | `render.js` |
 | Lamp warm glow alpha / radius | 0.22 × nightFactor / 60% of the lamp punch radius | `render.js` |
-| Light model: lamp / window radius (tiles) | 2.4 / 1.8 | `light.js` |
+| Light model: lamp / window radius (tiles) | 4.5 / 3.0 (milestone 14 analytic model used 2.4 / 1.8) | `light.js` |
+| Light map resolution / core gain | 2 cells per tile / 1.4 (inner ~30% of a pool is fully lit) | `light.js` |
 | Flashlight beam range / arc | 6 tiles / 44° | `items.json` |
 | Flashlight self-light | +0.5 on the player's tile while on | `light.js` |
 | Zombie sight in full dark, unlit | 35% of ZOMBIE_SIGHT (about 2 tiles) | `zombie.js` |

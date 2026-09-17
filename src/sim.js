@@ -6,6 +6,7 @@
 
 import * as world from "./world.js";
 import * as clock from "./clock.js";
+import { staticContribAt } from "./light.js";
 import { isWalkable } from "./node.js";
 import { ZOMBIE_SPEED } from "./entities/zombie.js";
 import { emit } from "./events.js";
@@ -152,7 +153,12 @@ function pickEdge(nodeId, hops, playerNodeId) {
     if (e.barricade) w *= BARRICADE_MULT;
     w += e.noise + e.scent;
     // A lit window is a tell only from right next to the player's own node.
-    if (e.kind === "window" && other.node === playerNodeId) w += NIGHT_WINDOW_LIGHT * clock.nightFactor();
+    // The pull is the actual light falling on the window tile out here, so a
+    // boarded or broken window stops glowing and stops pulling.
+    if (e.kind === "window" && other.node === playerNodeId) {
+      const lit = staticContribAt(world.getNode(nodeId), ref.tile[0], ref.tile[1]);
+      w += NIGHT_WINDOW_LIGHT * clock.nightFactor() * lit;
+    }
     candidates.push({ ref, w });
     total += w;
   }
