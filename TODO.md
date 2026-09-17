@@ -4,7 +4,7 @@ Working checklist. A new session should read `CLAUDE.md`, then this file, then t
 
 ## Status
 
-- **Current milestone:** 19 complete (2026-09-17): death turns you into a wandering zombie carrying your backpack, and a new survivor joins the same world (`docs/18-death-and-survivors.md`). Before it: 18 moodles (`docs/17`), 17 save and load (`docs/15`).
+- **Current milestone:** 20 complete (2026-09-17): bodies are searchable containers and zombies have a loot table (`docs/19-bodies.md`). Before it, 19: death turns you into a wandering zombie carrying your backpack, and a new survivor joins the same world (`docs/18-death-and-survivors.md`). Before it: 18 moodles (`docs/17`), 17 save and load (`docs/15`).
 - **What exists:** seven-node neighbourhood with gates and stairs (M12); hunger and a day/night clock (M13); flashlight and light-aware zombie sight (M14); per-node light map with shadows (M15); room lights, candles, coherent windows, daylight through openings (M16); one-slot local autosave, start screen, Escape pause menu, death deletes the save (M17). Right-click menus with auto-walk, screen-space gun, doorway thresholds, stamina-costed melee, plank refunds.
 - **Last completed task (2026-09-17):** Milestone 17 built and verified by script. Also wrote `docs/16-zomboid-systems-fit.md`, a survey of Project Zomboid systems with a fit verdict for each; it is the menu for choosing the next survival systems and nothing in it is built.
 - **History:** each milestone doc (10 to 13) ends with its scripted acceptance results; `docs/09-decisions.md` has every ruling with its reason, newest first, including the ones that were reversed.
@@ -113,6 +113,11 @@ Milestone acceptance criteria live in [docs/08-milestones.md](docs/08-milestones
 - [x] Occluders draw at alpha 0.4.
 - [x] Silhouette pass via an offscreen canvas with `source-in`.
 - [x] Verify acceptance in the yard behind trees with player and a zombie together.
+
+## Milestone 20 — Bodies are containers (see docs/19-bodies.md)
+
+- [x] Dead zombies are searchable containers; ordinary ones roll the `zombie` loot table on first search; a former survivor holds their backpack. Nothing drops on the floor.
+- [x] Records carry `loot` and `searched`. Verified by script 2026-09-17.
 
 ## Milestone 19 — Death, turning, the next survivor (see docs/18-death-and-survivors.md)
 

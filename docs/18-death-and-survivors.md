@@ -17,7 +17,7 @@ Everyone turns, whatever killed them. One rule, and starving to death at home st
 ## Your former self
 
 - An ordinary zombie in every way (health, speed, senses, off-screen wandering between nodes), plus two things: it draws with the `zombie_survivor` sprite, and it **carries your whole backpack**.
-- Killing it drops everything it carried on the floor where it falls.
+- ~~Killing it drops everything it carried on the floor where it falls.~~ Its body is a searchable container holding the backpack. See `19-bodies.md`.
 - It is saved like any zombie. Its record has `former: true` and `loot: [{ id, count }]`.
 - There can be several. Each death adds one.
 

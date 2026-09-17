@@ -6,6 +6,11 @@ Rulings follow the tiebreaker in `00-vision.md`: what best serves a cozy Habbo-s
 
 ## Decisions
 
+### 2026-09-17 — Bodies are containers (Michael's ruling)
+
+- **Dead zombies are searched, not spilled.** Michael: it lets zombies have loot pools without items cascading over the floor. Ordinary bodies roll the `zombie` table on first search; a former survivor's body holds their backpack.
+- The starting `zombie` table is deliberately thin (7 in 13 rolls are nothing) so that killing is not a way to farm supplies. It is a tunable.
+
 ### 2026-09-17 — Death loses the character, not the world (Michael's ruling)
 
 - **You turn, and someone new arrives.** Michael: mostly protection against losing a good world, and watching your character go green and wander off is a fun system. This reverses "death deletes the save" from earlier the same day, which was my call. With decoration as a pillar, deleting the house on death punished the investment we want.

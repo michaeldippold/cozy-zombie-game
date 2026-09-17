@@ -93,9 +93,14 @@ function tileOccupied(tx, ty) {
 
 function materialize(rec, tile) {
   const spot = nearestWalkable(node, tile[0], tile[1], tileOccupied) || tile;
-  const z = createZombie(spot[0], spot[1], { id: rec.id, hp: rec.hp, aggro: rec.aggro, dead: rec.state === "dead", former: rec.former, loot: rec.loot });
+  const z = createZombie(spot[0], spot[1], { id: rec.id, hp: rec.hp, aggro: rec.aggro, dead: rec.state === "dead", former: rec.former, loot: rec.loot, searched: rec.searched });
   zombies.push(z);
   return z;
+}
+
+// Dead zombies in the room: searchable like containers (docs/19-bodies.md).
+function bodies() {
+  return zombies.filter((z) => z.dead);
 }
 
 function materializeNode() {
@@ -281,7 +286,8 @@ function checkTransitions() {
 // ---- inventory actions ----
 
 // Put items on the floor at the player's tile, merging with a matching pile.
-function dropAt(id, count, tile = [Math.round(player.gx), Math.round(player.gy)]) {
+function dropAt(id, count) {
+  const tile = [Math.round(player.gx), Math.round(player.gy)];
   const existing = node.items.find((it) => it.item === id && it.tile[0] === tile[0] && it.tile[1] === tile[1]);
   if (existing) existing.count += count;
   else node.items.push({ item: id, tile, count });
@@ -376,7 +382,7 @@ function runAction(action) {
 function handleInteractionInput() {
   const m = input.getMouse();
   if (input.mouseRightPressed()) {
-    const actions = actionsAt(m.x, m.y, player, node, inv);
+    const actions = actionsAt(m.x, m.y, player, node, inv, bodies());
     if (actions.length) {
       menu.openContextMenu(m.x, m.y, actions.map((a) => ({ label: a.label, enabled: a.enabled, onSelect: () => runAction(a) })), CANVAS_W, CANVAS_H);
     }
@@ -384,7 +390,7 @@ function handleInteractionInput() {
   if (menu.isMenuOpen() && player.moving) menu.closeContextMenu();
 
   // E: the nearest simple thing (pick up, search).
-  const simple = nearestSimpleAction(player, node, inv);
+  const simple = nearestSimpleAction(player, node, inv, bodies());
   if (input.wasPressed("KeyE") && simple && !player.action) startAction(player, simple);
 }
 
@@ -458,7 +464,7 @@ function update(dt) {
   if (player.action) {
     updatePrompt({ label: player.action.action.label, tile: player.action.action.tiles[0] }, progress);
   } else {
-    const simple = nearestSimpleAction(player, node, inv);
+    const simple = nearestSimpleAction(player, node, inv, bodies());
     updatePrompt(simple ? { label: simple.label, tile: simple.tiles[0] } : null, null);
   }
   updateMessage(dt);
@@ -595,14 +601,7 @@ function newSurvivor() {
   updateHud(hudState());
 }
 
-// A former survivor drops everything it was carrying.
-function dropLoot(z) {
-  if (!z.loot || !z.loot.length) return;
-  const tile = [Math.round(z.gx), Math.round(z.gy)];
-  for (const it of z.loot) dropAt(it.id, it.count, tile);
-  z.loot = null;
-  showMessage("It drops everything you used to own.", 4);
-}
+
 
 function onPlayerHit({ damage }) {
   if (gameOver) return;
@@ -644,7 +643,6 @@ function startGame() {
   events.on("meleeSwing", () => sfx.swing());
   events.on("meleeHit", () => sfx.hit());
   events.on("zombieDied", () => sfx.die());
-  events.on("zombieDied", ({ zombie }) => dropLoot(zombie));
   events.on("pickedUp", () => sfx.pickup());
   events.on("dryFire", () => sfx.dry());
   events.on("playerHit", () => sfx.hurt());
@@ -774,7 +772,7 @@ async function boot() {
     },
     transition,
     runAction,
-    actionsAt: (sx, sy) => actionsAt(sx, sy, player, node, inv),
+    actionsAt: (sx, sy) => actionsAt(sx, sy, player, node, inv, bodies()),
   };
 }
 

@@ -25,11 +25,14 @@ const SEPARATION = 0.55;
 
 let nextId = 1;
 
-// `former` marks a turned survivor: it draws in the survivor's clothes and
-// carries `loot`, dropped when it dies. `rising` starts it on the floor.
-export function createZombie(gx, gy, { id = null, hp = ZOMBIE_HP, aggro = false, dead = false, former = false, loot = null, rising = false } = {}) {
+// A body is a searchable container (docs/19-bodies.md): once dead, a zombie
+// quacks like a container prop (`container`, `searched`, `contents`, `tiles`).
+// `former` marks a turned survivor: it draws in the survivor's clothes and its
+// `loot` is their backpack. Everyone else rolls the "zombie" table when first
+// searched. `rising` starts it on the floor.
+export function createZombie(gx, gy, { id = null, hp = ZOMBIE_HP, aggro = false, dead = false, former = false, loot = null, searched = false, rising = false } = {}) {
   if (dead) {
-    const z = createZombie(gx, gy, { id, hp: 0, former });
+    const z = createZombie(gx, gy, { id, hp: 0, former, loot, searched });
     z.dead = true;
     z.state = "die";
     playAnimation(z.anim, "die", true);
@@ -41,7 +44,13 @@ export function createZombie(gx, gy, { id = null, hp = ZOMBIE_HP, aggro = false,
     kind: "zombie",
     sprite: former ? "zombie_survivor" : "zombie",
     former,
-    loot,
+    container: former ? "your old self" : "body",
+    lootTable: "zombie",
+    searched,
+    contents: loot ? loot.map((i) => ({ ...i })) : [],
+    get tiles() {
+      return [[Math.round(this.gx), Math.round(this.gy)]];
+    },
     riseTimer: 0,
     id: id || `z${nextId++}`,
     gx,

@@ -68,7 +68,8 @@ function containerActions(prop) {
     perform() {
       if (!prop.searched) {
         prop.searched = true;
-        prop.contents = rollLoot(prop.container);
+        // Anything already inside (a former survivor's backpack) stays as it is.
+        if (!prop.contents.length) prop.contents = rollLoot(prop.lootTable || prop.container);
       }
       emit("containerOpened", { prop });
       return true;
@@ -221,7 +222,8 @@ function wallSegmentRect(node, ref) {
 }
 
 // Every action for whatever is under a canvas point.
-export function actionsAt(sx, sy, player, node, inv) {
+// `bodies` are dead zombies, which are searchable containers.
+export function actionsAt(sx, sy, player, node, inv, bodies = []) {
   const g = iso.toGrid(sx, sy);
   const tx = Math.round(g.gx);
   const ty = Math.round(g.gy);
@@ -237,6 +239,8 @@ export function actionsAt(sx, sy, player, node, inv) {
     if (onTile || onSprite) out.push(...containerActions(prop));
   }
 
+  for (const body of bodies) if (body.tiles.some(sameTile)) out.push(...containerActions(body));
+
   for (const ref of world.edgesOf(node.id)) {
     const onTile = sameTile(ref.tile) || (ref.threshold && sameTile(ref.threshold));
     const onWall = pointInRect(sx, sy, wallSegmentRect(node, ref));
@@ -250,7 +254,7 @@ export function actionsAt(sx, sy, player, node, inv) {
 }
 
 // The nearest simple action (pick up, search) within range, for the E key.
-export function nearestSimpleAction(player, node, inv) {
+export function nearestSimpleAction(player, node, inv, bodies = []) {
   let best = null;
   let bestD = Infinity;
   const consider = (actions) => {
@@ -265,6 +269,7 @@ export function nearestSimpleAction(player, node, inv) {
   };
   for (const it of node.items) consider(itemActions(it, node, inv));
   for (const prop of node.props) if (prop.container) consider(containerActions(prop));
+  for (const body of bodies) consider(containerActions(body));
   consider(switchActions(node));
   return best;
 }
