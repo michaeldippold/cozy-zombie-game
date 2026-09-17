@@ -69,6 +69,8 @@ Then replace Zomboid's entire mood loop (boredom, stress, unhappiness, and the p
 
 ### 6. The power cut, and what it drags along
 
+*Tabled by Michael on 2026-09-17, together with the water shutoff in section 2: long-game structure, to come after the moment-to-moment game is fuller.*
+
 **Zomboid:** the grid dies on a random day in weeks two to four, forecast on the emergency band. Lights, fridges, ovens, and TVs stop. Fridges slow rot while powered. Generators restore power in a radius at the price of constant noise and fuel.
 
 **Take: yes, after 3.** The cut is one timer, and our lighting system makes it land hard: every room light and streetlight goes out and candles and the flashlight become the game. Food spoilage becomes worth having at this point and not before: three states (fresh, stale, rotten), only for perishables, only ticking once the fridge is dead. A generator is a strong later addition, since "power, but loud" is the whole noise system in one object. This is also the natural moment to revisit the parked flashlight battery.

@@ -4,6 +4,7 @@ let root = null;
 
 const CAUSES = {
   zombie: { title: "You were eaten.", body: "And then you got back up." },
+  thirst: { title: "You died of thirst.", body: "The tap was right there. Something else is wearing your clothes now." },
   starvation: { title: "You starved to death.", body: "There was food out there. Something else is wearing your clothes now." },
 };
 

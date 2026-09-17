@@ -24,6 +24,13 @@ export const HUNGER_MAX = 100;
 export const HUNGER_DRAIN = HUNGER_MAX / 600;
 export const STARVE_DAMAGE = 3; // hp per second while hunger is at 0
 
+// Thirst (docs/20-thirst.md): empties in seven minutes, faster than hunger.
+export const THIRST_MAX = 100;
+export const THIRST_DRAIN = THIRST_MAX / 420;
+export const PARCHED_AT = 15; // below this, stamina recovers at half speed
+export const PARCHED_REGEN = 0.5;
+export const DEHYDRATE_DAMAGE = 3; // hp per second while thirst is at 0
+
 export function createPlayer(gx, gy) {
   return {
     kind: "player",
@@ -43,6 +50,9 @@ export function createPlayer(gx, gy) {
     hunger: HUNGER_MAX,
     maxHunger: HUNGER_MAX,
     starving: false,
+    thirst: THIRST_MAX,
+    maxThirst: THIRST_MAX,
+    dehydrated: false,
     flashlightOn: false,
     beam: null, // { range, arc } from the flashlight item while one is carried
     moving: false, // keyboard movement this step
@@ -69,6 +79,14 @@ function updateHunger(player, dt) {
   player.starving = player.hunger <= 0;
   if (player.starving) player.hp = Math.max(0, player.hp - STARVE_DAMAGE * dt);
   if (player.starving && !wasStarving) emit("message", { text: "You are starving. Find food." });
+}
+
+function updateThirst(player, dt) {
+  player.thirst = Math.max(0, player.thirst - THIRST_DRAIN * dt);
+  const was = player.dehydrated;
+  player.dehydrated = player.thirst <= 0;
+  if (player.dehydrated) player.hp = Math.max(0, player.hp - DEHYDRATE_DAMAGE * dt);
+  if (player.dehydrated && !was) emit("message", { text: "You are dying of thirst. Find water." });
 }
 
 // Screen position of the aim origin (chest).
@@ -142,6 +160,7 @@ function finishAuto(player) {
 export function updatePlayer(player, dt, node) {
   const sheet = getSheet(player.sprite);
   updateHunger(player, dt);
+  updateThirst(player, dt);
 
   // Movement: keys snap to the eight iso directions (docs/03). Any key press
   // cancels an auto-walk.
@@ -159,7 +178,8 @@ export function updatePlayer(player, dt, node) {
     player.stamina = Math.max(0, player.stamina - SPRINT_DRAIN * dt);
     if (player.stamina <= 0) player.winded = true;
   } else {
-    player.stamina = Math.min(player.maxStamina, player.stamina + STAMINA_REGEN * dt);
+    const regen = STAMINA_REGEN * (player.thirst < PARCHED_AT ? PARCHED_REGEN : 1);
+    player.stamina = Math.min(player.maxStamina, player.stamina + regen * dt);
   }
 
   let walking = false;

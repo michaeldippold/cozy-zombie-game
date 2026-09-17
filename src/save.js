@@ -2,7 +2,7 @@
 // This module only stores and retrieves a snapshot object. What goes in the
 // snapshot is decided by the modules that own the state and assembled in main.js.
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 const KEY = "cozy-zombie-save";
 
 function storage() {

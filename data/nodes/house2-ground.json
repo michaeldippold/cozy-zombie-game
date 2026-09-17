@@ -109,6 +109,21 @@
       ],
       "solid": true,
       "blocksShots": true
+    },
+    {
+      "id": "sink",
+      "sprite": "sink",
+      "tile": [
+        6,
+        0
+      ],
+      "footprint": [
+        1,
+        1
+      ],
+      "solid": true,
+      "blocksShots": false,
+      "water": "sink"
     }
   ],
   "edges": [

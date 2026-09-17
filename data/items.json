@@ -3,8 +3,10 @@
   {"id": "pistol", "name": "Pistol", "kind": "weapon", "weight": 1.5, "melee": false, "damage": 60, "ammo": "ammo_9mm", "loudness": 12, "cooldown": 0.35, "maxRange": 20},
   {"id": "ammo_9mm", "name": "9mm rounds", "kind": "ammo", "weight": 0.05, "stack": 30},
   {"id": "can_beans", "name": "Can of beans", "kind": "food", "weight": 0.5, "heal": 30, "hunger": 45},
-  {"id": "chips", "name": "Bag of chips", "kind": "food", "weight": 0.2, "heal": 5, "hunger": 18},
+  {"id": "chips", "name": "Bag of chips", "kind": "food", "weight": 0.2, "heal": 5, "hunger": 18, "thirst": -8},
   {"id": "flashlight", "name": "Flashlight", "kind": "tool", "weight": 0.6, "beam": {"range": 6, "arc": 44}},
   {"id": "candle", "name": "Candle", "kind": "light", "weight": 0.2, "light": {"radius": 3.2}},
-  {"id": "plank", "name": "Plank", "kind": "material", "weight": 1.5, "barricadeHp": 60}
+  {"id": "plank", "name": "Plank", "kind": "material", "weight": 1.5, "barricadeHp": 60},
+  {"id": "water_bottle", "name": "Water bottle", "kind": "drink", "weight": 0.6, "capacity": 100},
+  {"id": "soda", "name": "Can of soda", "kind": "food", "verb": "Drink", "weight": 0.4, "heal": 0, "hunger": 5, "thirst": 35}
 ]

@@ -31,9 +31,10 @@ const CANVAS_H = 540;
 const THRESHOLD_TRIGGER_DIST = 0.3; // tiles from a threshold tile center to cross
 const EDGE_REARM_DIST = 0.6; // must move this far from the arrival tile before crossing again
 const CONTAINER_CLOSE_DIST = 1.6;
-const STARTING_ITEMS = [["bat", 1], ["pistol", 1], ["ammo_9mm", 12], ["flashlight", 1], ["candle", 2]];
+const STARTING_ITEMS = [["bat", 1], ["pistol", 1], ["ammo_9mm", 12], ["flashlight", 1], ["candle", 2], ["water_bottle", 1, { fill: 100 }]];
 // Later survivors start light; the rest is on the last one (docs/18).
-const SURVIVOR_ITEMS = [["bat", 1], ["flashlight", 1]];
+const SURVIVOR_ITEMS = [["bat", 1], ["flashlight", 1], ["water_bottle", 1, { fill: 0 }]];
+const AUTO_DRINK_AT = 60; // thirst level at which you drink from a carried bottle by yourself
 const TURN_AT = 1.5; // seconds after death that the former self gets up
 const CARD_AT = 3.2; // seconds after death that the death card appears
 const FLASHLIGHT_ALARM = 1.2; // alarm added to the current node per sim tick while on, outdoors, at night
@@ -93,7 +94,7 @@ function tileOccupied(tx, ty) {
 
 function materialize(rec, tile) {
   const spot = nearestWalkable(node, tile[0], tile[1], tileOccupied) || tile;
-  const z = createZombie(spot[0], spot[1], { id: rec.id, hp: rec.hp, aggro: rec.aggro, dead: rec.state === "dead", former: rec.former, loot: rec.loot, searched: rec.searched });
+  const z = createZombie(spot[0], spot[1], { id: rec.id, hp: rec.hp, aggro: rec.aggro, dead: rec.state === "dead", former: rec.former, loot: rec.loot, searched: rec.searched, diedAt: rec.diedAt });
   zombies.push(z);
   return z;
 }
@@ -151,6 +152,7 @@ function snapshot() {
       hp: player.hp,
       stamina: player.stamina,
       hunger: player.hunger,
+      thirst: player.thirst,
       flashlightOn: player.flashlightOn,
     },
     inv: { items: inv.items.map((i) => ({ ...i })), equipped: inv.equipped },
@@ -177,6 +179,7 @@ function applySnapshot(s) {
   player.hp = s.player.hp;
   player.stamina = s.player.stamina;
   player.hunger = s.player.hunger;
+  player.thirst = s.player.thirst ?? player.maxThirst;
   player.flashlightOn = !!s.player.flashlightOn;
   player.beam = player.flashlightOn ? getItem("flashlight").beam : null;
   // Do not cross a door we happen to be standing in the moment we load.
@@ -286,11 +289,43 @@ function checkTransitions() {
 // ---- inventory actions ----
 
 // Put items on the floor at the player's tile, merging with a matching pile.
-function dropAt(id, count) {
+function dropAt(id, count, props = {}) {
   const tile = [Math.round(player.gx), Math.round(player.gy)];
-  const existing = node.items.find((it) => it.item === id && it.tile[0] === tile[0] && it.tile[1] === tile[1]);
+  // Items with their own state (a bottle's fill) never merge into a pile.
+  const existing = props.fill == null && node.items.find((it) => it.item === id && it.fill == null && it.tile[0] === tile[0] && it.tile[1] === tile[1]);
   if (existing) existing.count += count;
-  else node.items.push({ item: id, tile, count });
+  else node.items.push({ item: id, tile, count, ...props });
+}
+
+// Per-instance state that travels with an entry when it moves.
+function propsOf(entry) {
+  return entry.fill != null ? { fill: entry.fill } : {};
+}
+
+// Drink from one water container: only as much as is needed.
+function drinkFrom(entry) {
+  const cap = getItem(entry.id).capacity;
+  const need = player.maxThirst - player.thirst;
+  const have = (entry.fill / 100) * cap;
+  const amount = Math.min(need, have);
+  if (amount <= 0) return 0;
+  player.thirst += amount;
+  entry.fill = Math.max(0, Math.round(entry.fill - (amount / cap) * 100));
+  return amount;
+}
+
+// You drink by yourself when thirsty and carrying water, emptiest bottle first
+// (docs/20-thirst.md). The thirst moodle therefore means "out of water".
+function autoDrink() {
+  if (player.thirst >= AUTO_DRINK_AT) return;
+  const bottles = inventory.waterContainers(inv).filter((it) => it.fill > 0).sort((a, b) => a.fill - b.fill);
+  if (!bottles.length) return;
+  for (const b of bottles) {
+    drinkFrom(b);
+    if (player.thirst >= player.maxThirst - 0.5) break;
+  }
+  showMessage("You take a drink from your bottle.");
+  sfx.eat();
 }
 
 // How many of an item move at once: whole stack for stackables, one otherwise.
@@ -302,33 +337,48 @@ const panelHandlers = {
   equip(id) {
     inventory.equip(inv, id);
   },
-  use(id) {
+  use(id, fill = null) {
     const def = getItem(id);
     if (def.kind === "tool") {
       toggleFlashlight();
       return;
     }
+    if (def.kind === "drink") {
+      const entry = inv.items.find((it) => it.id === id && (fill === null || it.fill === fill) && it.fill > 0);
+      if (!entry) return;
+      if (drinkFrom(entry) <= 0) showMessage("Not thirsty right now.");
+      else sfx.eat();
+      return;
+    }
     if (def.kind !== "food") return;
-    if (player.hp >= player.maxHp && player.hunger >= player.maxHunger) {
-      showMessage("Not hungry right now.");
+    const wantsFood = player.hp < player.maxHp || player.hunger < player.maxHunger;
+    const wantsDrink = (def.thirst || 0) > 0 && player.thirst < player.maxThirst;
+    if (!wantsFood && !wantsDrink) {
+      showMessage(def.verb === "Drink" ? "Not thirsty right now." : "Not hungry right now.");
       return;
     }
     inventory.removeItem(inv, id, 1);
     player.hp = Math.min(player.maxHp, player.hp + (def.heal || 0));
     player.hunger = Math.min(player.maxHunger, player.hunger + (def.hunger || 0));
-    showMessage(`Ate ${def.name}.`);
+    player.thirst = Math.max(0, Math.min(player.maxThirst, player.thirst + (def.thirst || 0)));
+    showMessage(`${def.verb === "Drink" ? "Drank" : "Ate"} ${def.name}.`);
     sfx.eat();
   },
-  drop(id) {
+  drop(id, fill = null) {
+    if (fill !== null) {
+      const entry = inventory.takeEntry(inv, id, fill);
+      if (entry) dropAt(id, 1, propsOf(entry));
+      return;
+    }
     const n = moveCount(id, inventory.countItem(inv, id));
     const removed = inventory.removeItem(inv, id, n);
     if (removed > 0) dropAt(id, removed);
   },
-  take(id) {
+  take(id, fill = null) {
     if (!openContainer) return;
-    const stack = openContainer.contents.find((it) => it.id === id);
+    const stack = openContainer.contents.find((it) => it.id === id && (fill === null || it.fill === fill));
     if (!stack) return;
-    const added = inventory.addItem(inv, id, stack.count);
+    const added = inventory.addItem(inv, id, stack.count, propsOf(stack));
     if (added <= 0) {
       showMessage("Too heavy to carry.");
       return;
@@ -336,8 +386,13 @@ const panelHandlers = {
     stack.count -= added;
     if (stack.count <= 0) openContainer.contents.splice(openContainer.contents.indexOf(stack), 1);
   },
-  store(id) {
+  store(id, fill = null) {
     if (!openContainer) return;
+    if (fill !== null) {
+      const entry = inventory.takeEntry(inv, id, fill);
+      if (entry) openContainer.contents.push(entry);
+      return;
+    }
     const n = moveCount(id, inventory.countItem(inv, id));
     const removed = inventory.removeItem(inv, id, n);
     if (removed <= 0) return;
@@ -449,7 +504,7 @@ function update(dt) {
   light.update(node);
   handleCombatInput();
   updatePlayer(player, dt, node);
-  checkGameOver(player.starving ? "starvation" : "zombie");
+  checkGameOver(player.starving ? "starvation" : player.dehydrated ? "thirst" : "zombie");
   if (gameOver) {
     input.endStep();
     return;
@@ -470,6 +525,7 @@ function update(dt) {
   updateMessage(dt);
   updateInventoryUi();
   syncFlashlight();
+  autoDrink();
 
   autosaveTimer += dt;
   if (autosaveTimer >= AUTOSAVE_SECONDS) saveGame();
@@ -502,7 +558,7 @@ function render() {
     `zombies here ${zombies.filter((z) => !z.dead).length}/${zombies.length}  records ${sim.count()}\n` +
     `nodes ${Object.entries(sim.nodeCounts()).map(([k, v]) => `${k}:${v}`).join(" ")}\n` +
     `alarm ${[...sim.alarm.entries()].map(([k, v]) => `${k}:${v.toFixed(1)}`).join(" ")}\n` +
-    `${clock.getLabel()} phase=${clock.getPhase()} bright=${clock.getBrightness().toFixed(2)} hunger=${player.hunger.toFixed(0)} starving=${player.starving}\n` +
+    `${clock.getLabel()} phase=${clock.getPhase()} bright=${clock.getBrightness().toFixed(2)} hunger=${player.hunger.toFixed(0)} thirst=${player.thirst.toFixed(0)} starving=${player.starving}\n` +
     `sim ${sim.debugSummary()}`;
 }
 
@@ -588,7 +644,7 @@ function newSurvivor() {
   survivor += 1;
   player = createPlayer(spot[0], spot[1]);
   inv = inventory.createInventory();
-  for (const [id, count] of SURVIVOR_ITEMS) inventory.addItem(inv, id, count);
+  for (const [id, count, props] of SURVIVOR_ITEMS) inventory.addItem(inv, id, count, props);
   inventory.equip(inv, "bat");
   combat.effects.length = 0;
   gameOver = false;
@@ -661,7 +717,7 @@ function startGame() {
   centerNode(node);
   player = createPlayer(node.spawns.player[0], node.spawns.player[1]);
   inv = inventory.createInventory();
-  for (const [id, count] of STARTING_ITEMS) inventory.addItem(inv, id, count);
+  for (const [id, count, props] of STARTING_ITEMS) inventory.addItem(inv, id, count, props);
   inventory.equip(inv, "bat");
 
   // Every zombie starts as a record in its spawn node.

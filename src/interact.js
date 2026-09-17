@@ -11,7 +11,7 @@ import * as world from "./world.js";
 import { getSheet } from "./assets.js";
 import { isWalkable, inBounds, wallSpriteAt } from "./node.js";
 import { getItem, rollLoot } from "./items.js";
-import { addItem, removeItem, countItem } from "./inventory.js";
+import { addItem, removeItem, countItem, waterContainers } from "./inventory.js";
 import { emit } from "./events.js";
 
 export const INTERACT_RANGE = 1.15; // tiles
@@ -36,13 +36,13 @@ function itemActions(it, node, inv) {
   return [{
     kind: "item",
     simple: true,
-    label: `Pick up ${def.name}${it.count > 1 ? ` (${it.count})` : ""}`,
+    label: `Pick up ${def.name}${it.fill != null ? ` (${Math.round(it.fill)}%)` : ""}${it.count > 1 ? ` (${it.count})` : ""}`,
     tiles: [it.tile],
     range: INTERACT_RANGE,
     duration: 0,
     enabled: true,
     perform() {
-      const added = addItem(inv, it.item, it.count);
+      const added = addItem(inv, it.item, it.count, it.fill != null ? { fill: it.fill } : {});
       if (added <= 0) {
         emit("message", { text: "Too heavy to carry." });
         return false;
@@ -75,6 +75,46 @@ function containerActions(prop) {
       return true;
     },
   }];
+}
+
+// Sinks and fountains (docs/20-thirst.md). Infinite until water shutoff exists.
+const DRINK_TIME = 1.5;
+const FILL_TIME = 2;
+
+function waterActions(prop, player, inv) {
+  const toFill = () => waterContainers(inv).filter((it) => (it.fill ?? 0) < 100);
+  return [
+    {
+      kind: "water",
+      simple: player.thirst < 90, // E only offers it when it would do something
+      label: `Drink from ${prop.water}`,
+      tiles: prop.tiles,
+      range: INTERACT_RANGE,
+      duration: DRINK_TIME,
+      enabled: true,
+      perform() {
+        player.thirst = player.maxThirst;
+        emit("drank", {});
+        emit("message", { text: "You drink your fill." });
+        return true;
+      },
+    },
+    {
+      kind: "fill",
+      simple: false,
+      label: "Fill bottles",
+      tiles: prop.tiles,
+      range: INTERACT_RANGE,
+      duration: FILL_TIME,
+      enabled: toFill().length > 0,
+      perform() {
+        const list = toFill();
+        for (const it of list) it.fill = 100;
+        emit("message", { text: list.length > 1 ? `Filled ${list.length} bottles.` : "Filled your bottle." });
+        return list.length > 0;
+      },
+    },
+  ];
 }
 
 function edgeActions(ref, node, inv, player) {
@@ -233,10 +273,12 @@ export function actionsAt(sx, sy, player, node, inv, bodies = []) {
   for (const it of node.items) if (sameTile(it.tile)) out.push(...itemActions(it, node, inv));
 
   for (const prop of node.props) {
-    if (!prop.container) continue;
+    if (!prop.container && !prop.water) continue;
     const onTile = prop.tiles.some(sameTile);
     const onSprite = propRects(prop).some((r) => pointInRect(sx, sy, r));
-    if (onTile || onSprite) out.push(...containerActions(prop));
+    if (!onTile && !onSprite) continue;
+    if (prop.container) out.push(...containerActions(prop));
+    if (prop.water) out.push(...waterActions(prop, player, inv));
   }
 
   for (const body of bodies) if (body.tiles.some(sameTile)) out.push(...containerActions(body));
@@ -269,6 +311,7 @@ export function nearestSimpleAction(player, node, inv, bodies = []) {
   };
   for (const it of node.items) consider(itemActions(it, node, inv));
   for (const prop of node.props) if (prop.container) consider(containerActions(prop));
+  for (const prop of node.props) if (prop.water) consider(waterActions(prop, player, inv));
   for (const body of bodies) consider(containerActions(body));
   consider(switchActions(node));
   return best;

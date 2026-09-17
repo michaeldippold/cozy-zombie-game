@@ -80,7 +80,7 @@ export function serialize() {
       containers[p.id] = { searched: p.searched, contents: p.contents.map((c) => ({ ...c })) };
     }
     nodes[n.id] = {
-      items: n.items.map((i) => ({ item: i.item, tile: [...i.tile], count: i.count })),
+      items: n.items.map((i) => ({ item: i.item, tile: [...i.tile], count: i.count, ...(i.fill != null ? { fill: i.fill } : {}) })),
       lightsOn: n.lightsOn,
       containers,
     };
@@ -101,7 +101,7 @@ export function restore(s) {
   }
   for (const [id, st] of Object.entries(s.nodes)) {
     const n = getNode(id);
-    n.items = st.items.map((i) => ({ item: i.item, tile: [...i.tile], count: i.count }));
+    n.items = st.items.map((i) => ({ item: i.item, tile: [...i.tile], count: i.count, ...(i.fill != null ? { fill: i.fill } : {}) }));
     n.lightsOn = !!st.lightsOn;
     for (const [propId, c] of Object.entries(st.containers || {})) {
       const p = n.props.find((q) => q.id === propId);

@@ -1,4 +1,5 @@
-// Player inventory: a weight-limited list of { id, count }. See docs/04-gameplay.md.
+// Player inventory: a weight-limited list of { id, count }. Non-stacking items
+// may carry per-instance state such as `fill` (docs/20-thirst.md). See docs/04-gameplay.md.
 
 import { getItem } from "./items.js";
 
@@ -17,7 +18,8 @@ export function countItem(inv, id) {
 }
 
 // Add count of an item. Returns the number actually added (0 if over weight).
-export function addItem(inv, id, count = 1) {
+// `props` (e.g. { fill }) are copied onto each new non-stacking entry.
+export function addItem(inv, id, count = 1, props = {}) {
   const def = getItem(id);
   const room = inv.limit - totalWeight(inv);
   const canAdd = Math.min(count, Math.floor(room / def.weight + 1e-9));
@@ -37,7 +39,7 @@ export function addItem(inv, id, count = 1) {
       remaining -= take;
     }
   } else {
-    for (let i = 0; i < canAdd; i++) inv.items.push({ id, count: 1 });
+    for (let i = 0; i < canAdd; i++) inv.items.push({ id, count: 1, ...props });
   }
   return canAdd;
 }
@@ -55,6 +57,21 @@ export function removeItem(inv, id, count = 1) {
   }
   if (inv.equipped === id && countItem(inv, id) === 0) inv.equipped = null;
   return count - remaining;
+}
+
+// Remove and return one whole entry, matching `fill` when given. For moving
+// items that carry per-instance state.
+export function takeEntry(inv, id, fill = null) {
+  const i = inv.items.findIndex((it) => it.id === id && (fill === null || it.fill === fill));
+  if (i < 0) return null;
+  const [entry] = inv.items.splice(i, 1);
+  if (inv.equipped === id && countItem(inv, id) === 0) inv.equipped = null;
+  return entry;
+}
+
+// Entries that hold water: [{ id, count, fill }].
+export function waterContainers(inv) {
+  return inv.items.filter((it) => getItem(it.id).capacity);
 }
 
 export function equip(inv, id) {

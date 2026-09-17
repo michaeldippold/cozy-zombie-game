@@ -6,6 +6,18 @@ Rulings follow the tiebreaker in `00-vision.md`: what best serves a cozy Habbo-s
 
 ## Decisions
 
+### 2026-09-17 — Thirst, and what is tabled (Michael's brief)
+
+- **Water containers have a fill level, 0 to 100%**, not millilitres. Draw-down, consequences, refill points. Built as `20-thirst.md`.
+- **Water and power shutoff are tabled.** Michael: wanted eventually, but they are long-game structure; the moment-to-moment game gets fleshed out first. Taps are infinite until then.
+- **You drink by yourself** when thirst passes 60 and you are carrying water (my call, after Zomboid). Clicking a bottle on a timer is a chore; carrying and refilling water is the decision. So the thirst moodle means "out of water".
+- **Thirst is faster than hunger** (7 minutes against 10) and bites in two steps: halved stamina regen when parched, then health loss at zero.
+- **Order of work set by Michael:** thirst, then sleep, then furniture.
+
+### 2026-09-17 — Bodies despawn after 48 in-game hours (Michael's ruling)
+
+- Long enough to loot, short enough that nobody needs a "drag bodies outside" action. Off-screen only, so nothing vanishes while you watch. My addition: a former survivor's body is kept while it still holds anything, because deleting the player's backpack on a timer would undo the point of `18`.
+
 ### 2026-09-17 — Bodies are containers (Michael's ruling)
 
 - **Dead zombies are searched, not spilled.** Michael: it lets zombies have loot pools without items cascading over the floor. Ordinary bodies roll the `zombie` table on first search; a former survivor's body holds their backpack.
@@ -163,6 +175,10 @@ Values as of the end of milestone 11 (2026-09-14). Tuned only lightly; hands-on 
 
 | Tunable | Value | Where |
 |---|---|---|
+| Thirst drain / parched threshold / parched regen / dehydration damage | 100 per 420 s / 15 / ×0.5 / 3 hp per s | `player.js` |
+| Auto-drink threshold | thirst under 60 | `main.js` |
+| Bottle capacity / soda / chips | 100 thirst / +35 / −8 | `items.json` |
+| Body lifetime | 48 in-game hours (1440 s) | `sim.js` |
 | Player walk speed | 3.0 tiles/s | `player.js` |
 | Sprint multiplier / drain / regen / recover threshold | 1.75× / 40 per s / 22 per s / 20 | `player.js` |
 | Player stamina | 100 | `player.js` |

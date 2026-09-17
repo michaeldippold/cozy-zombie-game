@@ -40,7 +40,9 @@ export function rollLoot(tableId) {
       if (r <= 0) {
         if (e.item !== "nothing") {
           const count = e.count ? randInt(e.count[0], e.count[1]) : 1;
-          out.push({ id: e.item, count });
+          // Water containers turn up at a random level (docs/20-thirst.md).
+          if (getItem(e.item).capacity) out.push({ id: e.item, count: 1, fill: 25 * randInt(0, 4) });
+          else out.push({ id: e.item, count });
         }
         break;
       }

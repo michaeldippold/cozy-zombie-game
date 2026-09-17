@@ -20,6 +20,7 @@ export function createProp(def) {
     solid: def.solid !== false,
     blocksShots: !!def.blocksShots,
     container: def.container || null,
+    water: def.water || null, // name of a water source ("sink"), or null
     searched: false,
     contents: [],
   };

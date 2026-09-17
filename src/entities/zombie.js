@@ -7,6 +7,7 @@ import { getSheet } from "../assets.js";
 import { createAnimation, playAnimation, advanceAnimation, isActiveFrame } from "../sprites.js";
 import { emit } from "../events.js";
 import { lightAt, inBeam } from "../light.js";
+import * as clock from "../clock.js";
 
 export const ZOMBIE_SPEED = 1.2; // tiles per second
 export const ZOMBIE_SIGHT = 6; // tiles, in full light
@@ -30,10 +31,11 @@ let nextId = 1;
 // `former` marks a turned survivor: it draws in the survivor's clothes and its
 // `loot` is their backpack. Everyone else rolls the "zombie" table when first
 // searched. `rising` starts it on the floor.
-export function createZombie(gx, gy, { id = null, hp = ZOMBIE_HP, aggro = false, dead = false, former = false, loot = null, searched = false, rising = false } = {}) {
+export function createZombie(gx, gy, { id = null, hp = ZOMBIE_HP, aggro = false, dead = false, former = false, loot = null, searched = false, rising = false, diedAt = null } = {}) {
   if (dead) {
     const z = createZombie(gx, gy, { id, hp: 0, former, loot, searched });
     z.dead = true;
+    z.diedAt = diedAt;
     z.state = "die";
     playAnimation(z.anim, "die", true);
     z.anim.frame = 3;
@@ -52,6 +54,7 @@ export function createZombie(gx, gy, { id = null, hp = ZOMBIE_HP, aggro = false,
       return [[Math.round(this.gx), Math.round(this.gy)]];
     },
     riseTimer: 0,
+    diedAt: null, // clock time of death; bodies despawn 48 in-game hours later
     id: id || `z${nextId++}`,
     gx,
     gy,
@@ -189,6 +192,7 @@ export function damageZombie(z, amount, knock = null) {
   if (knock) z.knock = { x: knock.x, y: knock.y };
   if (z.hp <= 0) {
     z.hp = 0;
+    z.diedAt = clock.getElapsed();
     z.state = "die";
     z.path = [];
     playAnimation(z.anim, "die", true);

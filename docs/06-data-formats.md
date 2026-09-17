@@ -1,3 +1,5 @@
+> Additions since this was written: items may have `capacity` (a water container; its inventory, container, and floor entries carry `fill`, 0 to 100), `thirst`, and `verb`; props may have `"water": "sink"` to be a water source. See `20-thirst.md`.
+
 # 06 — Data formats
 
 All game content is JSON under `/data`. These shapes are the contract between data and code. Add fields freely, but do not rename or repurpose existing ones without updating this document.

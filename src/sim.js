@@ -64,6 +64,7 @@ function copyRecord(r) {
     former: !!r.former,
     loot: r.loot ? r.loot.map((i) => ({ ...i })) : null,
     searched: !!r.searched,
+    diedAt: r.diedAt ?? null,
   };
 }
 
@@ -86,6 +87,7 @@ export function serialize(zombiesHere, nodeId) {
       former: !!z.former,
       loot: z.contents.length ? z.contents.map((i) => ({ ...i })) : null,
       searched: !!z.searched,
+      diedAt: z.diedAt ?? null,
     });
   }
   return {
@@ -108,6 +110,8 @@ export function restore(s) {
   trickleTimer = s.trickleTimer || 0;
   nextSpawnId = s.nextSpawnId || nextSpawnId;
 }
+
+export const BODY_LIFETIME = 2 * clock.DAY_LENGTH; // 48 in-game hours
 
 export function addRecord(rec) {
   records.set(rec.id, rec);
@@ -177,6 +181,7 @@ export function dematerialize(z, nodeId, exitRef) {
     former: !!z.former,
     loot: z.contents.length ? z.contents : null,
     searched: !!z.searched,
+    diedAt: z.diedAt ?? null,
   };
   if (rec.aggro && exitRef) {
     rec.state = "moving";
@@ -300,8 +305,16 @@ export function tick(playerNodeId, dt = 1) {
   const hops = hopDistances(playerNodeId);
   trickle(dt, hops, playerNodeId);
   const arrivals = [];
+  const now = clock.getElapsed();
   for (const rec of [...records.values()]) {
-    if (rec.state === "dead") continue;
+    if (rec.state === "dead") {
+      // Bodies despawn after 48 in-game hours, only ever off-screen. A former
+      // survivor's body stays while it still holds their backpack.
+      if (rec.diedAt == null) rec.diedAt = now;
+      const keeps = rec.former && rec.loot && rec.loot.length;
+      if (!keeps && now - rec.diedAt >= BODY_LIFETIME) records.delete(rec.id);
+      continue;
+    }
     if (rec.node === playerNodeId) {
       // Should not happen; hand it back to be materialized where it stands.
       records.delete(rec.id);

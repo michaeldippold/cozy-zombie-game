@@ -12,6 +12,8 @@ It replaces the "drops everything where it falls" rule in `18-death-and-survivor
 - A body works like any container afterwards: Take and Store both work, so a body can hold things you leave on it.
 - The panel closes when you walk away, as with furniture.
 
+Bodies despawn 48 in-game hours after death; see the end of `20-thirst.md`.
+
 ## Code
 
 - `entities/zombie.js`: every zombie carries the container fields (`container`, `lootTable`, `searched`, `contents`, and a `tiles` getter for its current tile). They are only consulted once it is dead.
