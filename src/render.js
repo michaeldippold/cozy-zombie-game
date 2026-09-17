@@ -93,10 +93,11 @@ const LAMP_LIGHT_RADIUS = 140;
 // Night is dark but never black: things in the open are faintly visible, and
 // light sources make them meaningfully brighter. The layer is composited with
 // "multiply" so colours darken proportionally; at full night a far, unlit tile
-// keeps roughly 19-40% of its brightness per channel, blue-shifted: dark
+// keeps roughly 15-35% of its brightness per channel, blue-shifted: dark
 // enough that a still zombie and a small tree are hard to tell apart.
-const NIGHT_TINT = "38, 44, 95";
-const NIGHT_TINT_ALPHA = 0.95;
+// Previous step, the "happy medium" candidate: "38, 44, 95" at 0.95.
+const NIGHT_TINT = "30, 35, 82";
+const NIGHT_TINT_ALPHA = 0.96;
 // The player's own night vision: a wide, weak, very gradual lift around them.
 // Low centre strength and a long falloff so it never reads as a spotlight that
 // follows you around. Visual only; zombie sight does not use it.
