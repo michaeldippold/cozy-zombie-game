@@ -739,7 +739,6 @@ function startGame() {
     else sfx.hit();
   });
   events.on("shove", ({ hits }) => (hits ? sfx.thud() : sfx.shove()));
-  events.on("zombieWindup", () => sfx.groan());
   events.on("zombieDied", () => sfx.die());
   events.on("pickedUp", () => sfx.pickup());
   events.on("dryFire", () => sfx.dry());

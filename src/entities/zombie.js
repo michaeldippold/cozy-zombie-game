@@ -24,7 +24,7 @@ export const ZOMBIE_RADIUS = 0.3;
 const RISE_TIME = 1.2; // a former survivor getting back up (docs/18)
 const DOWN_TIME = 2.0; // knocked down (docs/22)
 // Wind-up and lunge (docs/22, built to be tried and maybe removed).
-export const WINDUP_TIME = 0.4;
+export const WINDUP_TIME = 0.2; // a short beat, not a telegraph (Michael, 2026-09-17)
 const LUNGE_PUSH = 0.35; // knock impulse: the total travel in tiles, like weapon knockback
 const LEAN_PX = 5; // how far the sprite leans back during the wind-up
 const LUNGE_HIT_REACH = ZOMBIE_CONTACT + 0.35;

@@ -66,6 +66,8 @@ Scripted in the browser and passed. A zombie 1.2 tiles away was hit from all eig
 
 ## Wind-up and lunge (added the same day, on trial)
 
+*Tuned after play: wind-up 0.2 s and no groan. Michael: just enough relief that clipping a zombie is not an instant hit, not so much that it trivialises melee.*
+
 Michael, after playing the rework: it already feels much more dynamic; everything above is locked in as good for now. The lunge is built knowing it might be stripped back out.
 
 - A zombie in reach with its bite ready no longer bites at once. It enters a **wind-up** (`WINDUP_TIME`, 0.4 s): stands still, faces you, and its sprite leans back up to 5 px away from you. A low groan plays.

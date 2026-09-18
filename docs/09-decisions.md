@@ -8,7 +8,7 @@ Rulings follow the tiebreaker in `00-vision.md`: what best serves a cozy Habbo-s
 
 ### 2026-09-17 — Melee rework rulings (Michael)
 
-- **Keep melee simple.** Fix hits, add knockdown, feedback, and a shove on Space (Zomboid's key). After playing it Michael called the rework locked in and asked for the lunge wind-up as a trial that may be stripped out.
+- **Keep melee simple.** Fix hits, add knockdown, feedback, and a shove on Space (Zomboid's key). After playing it Michael called the rework locked in and asked for the lunge wind-up as a trial that may be stripped out. Then tuned it to a 0.2 s beat with no sound: relief from instant hits without trivialising melee.
 - **Romero zombies.** They walked a smidge too fast: 1.2 to 1.0 tiles per second. No variety for now, probably never runners.
 - **Weapon condition stays parked.**
 - **Never** Zomboid's hold-right-click aim swivel that slows you and turns you. **Never** hit locations: the models are not detailed enough. Headshots might someday be a firearms-only thing. A shotgun hitting several zombies needs none of that and is fine.
@@ -201,6 +201,7 @@ Values as of the end of milestone 11 (2026-09-14). Tuned only lightly; hands-on 
 | Shove range / arc / knockback / stagger / knockdown / stamina / cooldown | 1.0 / ±50° / 1.6 / 0.6 s / 25% / 5 / 0.45 s | `combat.js` |
 | Hit-stop hit / kill, kick, flash | 45 / 90 ms, 3 px for 80 ms, 90 ms | `combat.js` |
 | Zombie walk speed | 1.0 tiles/s | `zombie.js` |
+| Bite wind-up / lunge travel | 0.2 s / 0.35 tiles | `zombie.js` |
 | Knockdown floor time / get-up time | 2.0 s / 0.6 s | `zombie.js` |
 | Backpack grid | 6x4 | `inventory.js` |
 | Item sizes, container grids | see `21-grid-inventory.md` | `items.json`, `loot.json` |
