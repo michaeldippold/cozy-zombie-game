@@ -408,8 +408,9 @@ function entityDrawables(entities, out, node, player) {
   for (const e of entities) {
     const sheet = getSheet(e.sprite);
     const p = iso.toScreen(e.gx, e.gy);
-    const x = Math.round(p.x);
-    const y = Math.round(p.y);
+    // A winding-up zombie leans back a few pixels (docs/22).
+    const x = Math.round(p.x + (e.leanX || 0));
+    const y = Math.round(p.y + (e.leanY || 0));
     const r = resolveFacing(sheet, e.facing);
     const rect = frameRect(sheet, frameName(sheet, e.anim.name, r.facing, e.anim.frame), x, y);
     out.push({

@@ -8,7 +8,7 @@ Rulings follow the tiebreaker in `00-vision.md`: what best serves a cozy Habbo-s
 
 ### 2026-09-17 — Melee rework rulings (Michael)
 
-- **Keep melee simple.** Fix hits, add knockdown, feedback, and a shove on Space (Zomboid's key). A lunge wind-up only if it still feels wrong afterwards.
+- **Keep melee simple.** Fix hits, add knockdown, feedback, and a shove on Space (Zomboid's key). After playing it Michael called the rework locked in and asked for the lunge wind-up as a trial that may be stripped out.
 - **Romero zombies.** They walked a smidge too fast: 1.2 to 1.0 tiles per second. No variety for now, probably never runners.
 - **Weapon condition stays parked.**
 - **Never** Zomboid's hold-right-click aim swivel that slows you and turns you. **Never** hit locations: the models are not detailed enough. Headshots might someday be a firearms-only thing. A shotgun hitting several zombies needs none of that and is fine.

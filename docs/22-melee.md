@@ -63,3 +63,14 @@ Lunge wind-up (held in reserve), weapon condition (parked), zombie variety (no),
 ## Results (2026-09-17)
 
 Scripted in the browser and passed. A zombie 1.2 tiles away was hit from all eight screen directions and one at 2.3 was missed from all eight. Down-screen: hit at 1.5 and 1.9, missed at 2.2 and 2.5. A zombie beside you was hit when aiming 30° and 52° off, missed at 90°. Point blank behind the player hit. Ten clicks in one second produced two swings (the cooldown) and both resolved. A swing while the player's hurt animation was playing landed for 34. Three hits in a row: the first happened to roll a knockdown, the next two were finishers at 68, the zombie stayed down and got up into chase after its timer. Hit-stop 45 ms, kick and flash set on a hit. Shove: no damage, pushed 0.26 tiles in the first 0.4 s, staggered, cooldown running. Zombie speed constant 1.0.
+
+## Wind-up and lunge (added the same day, on trial)
+
+Michael, after playing the rework: it already feels much more dynamic; everything above is locked in as good for now. The lunge is built knowing it might be stripped back out.
+
+- A zombie in reach with its bite ready no longer bites at once. It enters a **wind-up** (`WINDUP_TIME`, 0.4 s): stands still, faces you, and its sprite leans back up to 5 px away from you. A low groan plays.
+- Then it **lunges**: a 0.35-tile push toward where you are now, into the bite. The bite's reach is contact plus 0.35 to match.
+- **A hit during the wind-up cancels it** (any damage staggers; a shove or knockdown also does). **Stepping out of reach makes it bite air**, and its cooldown is spent either way.
+- Code: a `windup` state in `zombie.js` between `chase` and `attack`; `leanX/leanY` read by the renderer; events `zombieWindup` and `zombieLunge`. Nothing in `combat.js` changed. To remove it: make `chase` go straight to `attack` again and delete the state.
+
+Verified by script: wind-up entered with the lean growing to 3.7 px at 0.35 s, lunge travelled 0.30 tiles, a standing player was bitten once, a player who stepped 1.3 tiles back during the wind-up was not, and a hit during the wind-up left the zombie staggered with no bite. (First attempt lunged 2.4 tiles: the knock impulse is total travel, not a velocity.)

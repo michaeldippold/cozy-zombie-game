@@ -10,7 +10,7 @@ Working checklist. A new session should read `CLAUDE.md`, then this file, then t
 - **History:** each milestone doc (10 to 13) ends with its scripted acceptance results; `docs/09-decisions.md` has every ruling with its reason, newest first, including the ones that were reversed.
 - **Blocked on:** nothing
 - **Next, in Michael's order:** sleep (tired moodle, beds, time skip, waking to break-ins; see section 4 of `docs/16`), then furniture. Furniture ruling already made (see `docs/09`): small pieces are grid items; any single large piece is carried in both hands with no sprint and no fighting, and no other penalty. **Tabled by Michael:** water and power shutoff, until the moment-to-moment game is fuller. Parked: flashlight battery, candle burn time, daylight pooled at windows, peeking through windows. Later: Tiled importer, real art last.
-- **Notes for next session:** Melee was reworked in M24; if it still feels wrong in play, the lunge wind-up in `docs/22` is the held-back next step. Run with `python serve.py 8000` (a no-cache static server; plain `http.server` serves stale modules). For scripted tests in a browser console: the game now boots to a start screen, so call `window.__game.newGame()` first, then `window.__game.loop.setPaused(true)`, then drive time with `window.__game.loop.advance(seconds)`; the game otherwise runs in real time between commands. `?sheet=<id>&scale=2` on the URL renders a sprite sheet instead of the game. Interaction (E), prompt, pickups, container search, and plank boarding were built during milestone 8 in `src/interact.js` and `src/ui/prompt.js`; milestone 9 only needs the panel, container view, use/drop/equip, and food.
+- **Notes for next session:** Melee was reworked in M24 and Michael locked it in; the wind-up and lunge are on trial and may be removed (end of `docs/22`). Run with `python serve.py 8000` (a no-cache static server; plain `http.server` serves stale modules). For scripted tests in a browser console: the game now boots to a start screen, so call `window.__game.newGame()` first, then `window.__game.loop.setPaused(true)`, then drive time with `window.__game.loop.advance(seconds)`; the game otherwise runs in real time between commands. `?sheet=<id>&scale=2` on the URL renders a sprite sheet instead of the game. Interaction (E), prompt, pickups, container search, and plank boarding were built during milestone 8 in `src/interact.js` and `src/ui/prompt.js`; milestone 9 only needs the panel, container view, use/drop/equip, and food.
 
 Milestone acceptance criteria live in [docs/08-milestones.md](docs/08-milestones.md). Fixed numbers live in [docs/01-constraints.md](docs/01-constraints.md). Tunable starting values live in [docs/09-decisions.md](docs/09-decisions.md).
 
@@ -121,6 +121,7 @@ Milestone acceptance criteria live in [docs/08-milestones.md](docs/08-milestones
 - [x] Shove on Space: push, stagger, 25% knockdown, no damage.
 - [x] Feedback: hit-stop, screen kick, white flash, thud and crunch sounds.
 - [x] Zombie speed 1.2 to 1.0. Bat range 1.35, knockback 0.8.
+- [x] On trial: 0.4 s wind-up with a lean and a groan, then a 0.35-tile lunge; a hit cancels it, stepping back dodges it. Easy to remove.
 - [x] Verify acceptance in docs/22 (scripted and passed 2026-09-17).
 
 ## Milestone 23 — Grid inventory (see docs/21-grid-inventory.md)

@@ -23,6 +23,11 @@ export const ZOMBIE_REPATH = 0.3; // seconds
 export const ZOMBIE_RADIUS = 0.3;
 const RISE_TIME = 1.2; // a former survivor getting back up (docs/18)
 const DOWN_TIME = 2.0; // knocked down (docs/22)
+// Wind-up and lunge (docs/22, built to be tried and maybe removed).
+export const WINDUP_TIME = 0.4;
+const LUNGE_PUSH = 0.35; // knock impulse: the total travel in tiles, like weapon knockback
+const LEAN_PX = 5; // how far the sprite leans back during the wind-up
+const LUNGE_HIT_REACH = ZOMBIE_CONTACT + 0.35;
 const GET_UP_TIME = 0.6;
 const WANDER_IDLE_MIN = 1.5;
 const WANDER_IDLE_MAX = 4.0;
@@ -87,6 +92,9 @@ export function createZombie(gx, gy, { id = null, hp = ZOMBIE_HP, aggro = false,
     idleTimer: WANDER_IDLE_MIN + Math.random() * (WANDER_IDLE_MAX - WANDER_IDLE_MIN),
     attackCooldown: 0,
     attackHit: false,
+    windupTimer: 0,
+    leanX: 0,
+    leanY: 0,
     hurtTimer: 0,
     dead: false,
     knock: { x: 0, y: 0 },
@@ -293,6 +301,8 @@ export function updateZombie(z, dt, node, player, others) {
   applyKnockback(z, dt, node);
   z.attackCooldown = Math.max(0, z.attackCooldown - dt);
   z.repathTimer -= dt;
+  z.leanX = 0;
+  z.leanY = 0;
 
   switch (z.state) {
     case "idle": {
@@ -329,9 +339,12 @@ export function updateZombie(z, dt, node, player, others) {
         z.path = [];
         faceToward(z, player.gx - z.gx, player.gy - z.gy);
         if (z.attackCooldown <= 0) {
-          z.state = "attack";
-          z.attackHit = false;
+          // Wind up first: a beat the player can read and act on.
+          z.state = "windup";
+          z.windupTimer = WINDUP_TIME;
           playAnimation(z.anim, "attack", true);
+          z.anim.frame = 0;
+          emit("zombieWindup", { zombie: z });
         } else {
           playAnimation(z.anim, "idle");
           separate(z, dt, node, others);
@@ -362,10 +375,31 @@ export function updateZombie(z, dt, node, player, others) {
       }
       break;
     }
+    case "windup": {
+      // Stand still, face the player, lean back; then lunge. A hit in this
+      // window staggers the zombie (damageZombie) and cancels the bite.
+      faceToward(z, player.gx - z.gx, player.gy - z.gy);
+      z.anim.frame = 0;
+      z.windupTimer -= dt;
+      const sd = iso.gridDirToScreen(player.gx - z.gx, player.gy - z.gy);
+      const sn = Math.hypot(sd.sx, sd.sy) || 1;
+      const t = 1 - Math.max(0, z.windupTimer / WINDUP_TIME);
+      z.leanX = (-sd.sx / sn) * LEAN_PX * t;
+      z.leanY = (-sd.sy / sn) * LEAN_PX * t;
+      if (z.windupTimer <= 0) {
+        z.state = "attack";
+        z.attackHit = false;
+        playAnimation(z.anim, "attack", true);
+        const n = iso.normalize(player.gx - z.gx, player.gy - z.gy);
+        z.knock = { x: n.x * LUNGE_PUSH, y: n.y * LUNGE_PUSH };
+        emit("zombieLunge", { zombie: z });
+      }
+      break;
+    }
     case "attack": {
       if (isActiveFrame(z.anim, sheet) && !z.attackHit) {
         z.attackHit = true;
-        if (distTo(z, player) <= ZOMBIE_CONTACT + 0.2) {
+        if (distTo(z, player) <= LUNGE_HIT_REACH) {
           emit("playerHit", { zombie: z, damage: ZOMBIE_DAMAGE });
         }
       }

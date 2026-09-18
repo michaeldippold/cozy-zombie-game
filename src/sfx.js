@@ -96,6 +96,9 @@ export const sfx = {
   shove() {
     noiseBurst(0.08, { freq: 500, q: 1.5, gain: 0.12 });
   },
+  groan() {
+    tone(95, 0.3, { type: "sawtooth", gain: 0.09, slide: 25 });
+  },
   eat() {
     tone(440, 0.1, { type: "sine", gain: 0.1, slide: 120 });
   },
